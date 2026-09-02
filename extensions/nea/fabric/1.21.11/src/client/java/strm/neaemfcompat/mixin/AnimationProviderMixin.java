@@ -7,10 +7,10 @@ import dev.tr7zw.notenoughanimations.animations.fullbody.BurningAnimation;
 import dev.tr7zw.notenoughanimations.animations.fullbody.FreezingAnimation;
 import dev.tr7zw.notenoughanimations.versionless.NEABaseMod;
 import dev.tr7zw.notenoughanimations.versionless.animations.BodyPart;
-import net.minecraft.client.render.entity.model.PlayerEntityModel;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.passive.AbstractHorseEntity;
+import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,7 +29,7 @@ public class AnimationProviderMixin {
     private BasicAnimation[] neaemfcompat$animationArray;
 
     @Inject(method = "applyAnimations", at = @At("HEAD"))
-    private void neaemfcompat$resetAnimationArray(AbstractClientPlayerEntity entity, PlayerEntityModel model, float delta, float swing, CallbackInfo ci) {
+    private void neaemfcompat$resetAnimationArray(AbstractClientPlayer entity, PlayerModel model, float delta, float swing, CallbackInfo ci) {
         this.neaemfcompat$animationArray = null;
     }
 
@@ -44,10 +44,10 @@ public class AnimationProviderMixin {
     }
 
     @Inject(method = "applyAnimations", at = @At("RETURN"))
-    private void neaemfcompat$onApplyAnimationsReturn(AbstractClientPlayerEntity entity, PlayerEntityModel model, float delta, float swing, CallbackInfo ci) {
+    private void neaemfcompat$onApplyAnimationsReturn(AbstractClientPlayer entity, PlayerModel model, float delta, float swing, CallbackInfo ci) {
 
         if (!NEAEMFCompatClient.isEnabled()) {
-            PoseManager.clearPoses(entity.getUuid());
+            PoseManager.clearPoses(entity.getUUID());
             return;
         }
 
@@ -61,7 +61,7 @@ public class AnimationProviderMixin {
         boolean rightLeg = false;
         if (NEABaseMod.config.enableHorseLegAnimation) {
             Entity vehicle = entity.getVehicle();
-            if (vehicle instanceof AbstractHorseEntity) {
+            if (vehicle instanceof AbstractHorse) {
                 leftLeg = true;
                 rightLeg = true;
             }
@@ -76,16 +76,16 @@ public class AnimationProviderMixin {
                 }
             }
             if (!hasBurningOrFreezingOrNaruto && !leftLeg && !rightLeg) {
-                PoseManager.clearPoses(entity.getUuid());
+                PoseManager.clearPoses(entity.getUUID());
                 return;
             }
         }
 
         if (!leftArm && !rightArm && !leftLeg && !rightLeg) {
-            PoseManager.clearPoses(entity.getUuid());
+            PoseManager.clearPoses(entity.getUUID());
             return;
         }
 
-        PoseManager.setActiveParts(entity.getUuid(), new ActiveParts(leftArm, rightArm, leftLeg, rightLeg), model);
+        PoseManager.setActiveParts(entity.getUUID(), new ActiveParts(leftArm, rightArm, leftLeg, rightLeg), model);
     }
 }

@@ -4,8 +4,8 @@ import com.takeaseat.client.TakeASeatClient;
 import com.zigythebird.playeranim.api.PlayerAnimationAccess;
 import com.zigythebird.playeranimcore.animation.layered.IAnimation;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.entity.Entity;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.world.entity.Entity;
 import strm.emfcompat.core.PoseManager;
 import strm.emfcompat.core.PoseSnapshot;
 import strm.emfcompat.core.SavedPoses;
@@ -57,7 +57,7 @@ public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHo
         EMFEntityRenderState state = context.activeState();
         if (state == null || state.isFirstPersonHand()) return true;
         if (!(state.emfEntity() instanceof Entity entity)) return true;
-        if (!(entity instanceof AbstractClientPlayerEntity player)) return true;
+        if (!(entity instanceof AbstractClientPlayer player)) return true;
 
         IAnimation layer;
         try {
@@ -66,7 +66,7 @@ public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHo
             return true;
         }
         if (layer == null || !layer.isActive()) {
-            PoseManager.clearPoses(player.getUuid(), POSE_SOURCE);
+            PoseManager.clearPoses(player.getUUID(), POSE_SOURCE);
             return true;
         }
 
@@ -85,7 +85,7 @@ public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHo
 
         if (!savedParts.isEmpty()) {
             PoseManager.savePoses(
-                    player.getUuid(),
+                    player.getUUID(),
                     POSE_SOURCE,
                     new SavedPoses(null, null, savedParts),
                     false

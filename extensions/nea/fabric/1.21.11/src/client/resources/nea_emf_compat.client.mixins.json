@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "AnimationProviderMixin",
-    "PlayerEntityModelMixin"
+    "PlayerModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1
