@@ -56,6 +56,10 @@ remappedSrc/
 loom-cache/
 .architectury-transformer/
 
+# Stonecutter: version nodes and their processed sources are generated from src/
+versions/
+stonecutter-cache/
+
 # Mod build outputs
 upload/
 *.jar

@@ -10,8 +10,15 @@ plugins {
 //   extensions/nea/<loader>/<version>     — NotEnoughAnimations addon.
 //   extensions/carryon/<loader>/<version> — Carry On addon.
 
+// Stonecutter branch roots are controller projects, not buildable ones — applying `base` to
+// them makes Stonecutter complain and serves no purpose, since the jars come out of the version
+// nodes underneath.
+def stonecutterBranchRoots = [':better-combat-fabric'] as Set
+
 allprojects {
-    apply plugin: 'base'
+    if (!(project.path in stonecutterBranchRoots)) {
+        apply plugin: 'base'
+    }
 
     group = mod_group_id
     version = mod_version
@@ -22,6 +29,7 @@ allprojects {
 
     afterEvaluate { p ->
         if (p == rootProject) return
+        if (p.path in stonecutterBranchRoots) return
 
         def modId = p.findProperty('mod_id')
         def mcVersion = p.findProperty('minecraft_version')
@@ -32,8 +40,17 @@ allprojects {
         def uploadLoader
         def uploadVersion
 
-        def nameParts = p.name.split('-')
-        if (nameParts.length >= 3) {
+        // Flat modules are named "<element>-<loader>-<version>". A Stonecutter version node is
+        // named after its Minecraft version alone and hangs under a branch named
+        // "<element>-<loader>", so the same three pieces come from the parent plus the node.
+        def nameParts
+        if (p.parent != null && p.parent != rootProject) {
+            nameParts = (p.parent.name.split('-') as List) + [p.name]
+        } else {
+            nameParts = p.name.split('-') as List
+        }
+
+        if (nameParts.size() >= 3) {
             uploadLoader = nameParts[-2]
             uploadVersion = nameParts[-1]
             def elementParts = nameParts[0..-3]
