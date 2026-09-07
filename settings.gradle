@@ -25,6 +25,9 @@ project(":core-forge-1.20.1").projectDir = file("core/forge/1.20.1")
 include("core-neoforge-1.21.1")
 project(":core-neoforge-1.21.1").projectDir = file("core/neoforge/1.21.1")
 
+include("core-fabric-1.21.1")
+project(":core-fabric-1.21.1").projectDir = file("core/fabric/1.21.1")
+
 include("core-fabric-1.21.11")
 project(":core-fabric-1.21.11").projectDir = file("core/fabric/1.21.11")
 
@@ -100,6 +103,9 @@ project(":supplementaries-forge-1.20.1").projectDir = file("extensions/supplemen
 // Iron's Spells addon.
 include("iron-spells-neoforge-1.21.1")
 project(":iron-spells-neoforge-1.21.1").projectDir = file("extensions/iron_spells/neoforge/1.21.1")
+
+include("iron-spells-forge-1.20.1")
+project(":iron-spells-forge-1.20.1").projectDir = file("extensions/iron_spells/forge/1.20.1")
 
 // Better Combat addon.
 include("better-combat-neoforge-1.21.1")
