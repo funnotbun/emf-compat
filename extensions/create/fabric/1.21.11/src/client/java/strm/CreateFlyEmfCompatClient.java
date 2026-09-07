@@ -1,7 +1,6 @@
 package strm;
 
 import net.fabricmc.api.ClientModInitializer;
-import strm.createFlyEmfCompat.compat.EMFCompat;
 import strm.emfcompat.core.ConfigRegistry;
 import strm.emfcompat.core.EMFCompatConfig;
 
@@ -25,8 +24,6 @@ public class CreateFlyEmfCompatClient implements ClientModInitializer {
                 .addBoolean(KEY_NEA_ITEMSWAP, "NEA item-swap fix", true,
                         "On", "Suppress NotEnoughAnimations' item-swap animation while skyhooking.",
                         "Off", "Let NEA play its item-swap animation.");
-
-        EMFCompat.init();
     }
 
     public static boolean isEnabled() {
