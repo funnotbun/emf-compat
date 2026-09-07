@@ -77,6 +77,9 @@ project(":nea-neoforge-1.21.1").projectDir = file("extensions/nea/neoforge/1.21.
 include("nea-forge-1.20.1")
 project(":nea-forge-1.20.1").projectDir = file("extensions/nea/forge/1.20.1")
 
+include("nea-fabric-1.21.1")
+project(":nea-fabric-1.21.1").projectDir = file("extensions/nea/fabric/1.21.1")
+
 include("nea-fabric-1.21.11")
 project(":nea-fabric-1.21.11").projectDir = file("extensions/nea/fabric/1.21.11")
 
