@@ -18,10 +18,11 @@ import java.util.UUID;
  * player whose captured pose can never be put back. The rule is simply: if any addon has a pose
  * saved for this player, it means to restore it, and the pause has to go.</p>
  *
- * <p>Addons that genuinely want EMF paused — Create Fly's skyhook on Fabric, Not Enough
- * Animations' frozen arms in bed — register their own pause condition and do <em>not</em> save a
- * pose for that state, so nothing here lifts their pause. Both also register a vanilla-model
- * condition, which is the mechanism that actually shows their pose and is independent of pausing.</p>
+ * <p>An addon that genuinely wants EMF paused — Not Enough Animations' frozen arms in bed is the
+ * remaining case — registers its own pause condition and saves no pose for that state, so nothing
+ * here lifts it. It also registers a vanilla-model condition, which is what actually shows the
+ * pose and is independent of pausing. The Create addon used to work that way for the skyhook and
+ * now captures the hang pose instead, precisely so the pack keeps animating the face.</p>
  *
  * <p>The linger exists because PAL keeps fading an animation out for a frame or two after the
  * addon has already dropped its pose. Without it the model would snap back to vanilla for exactly
