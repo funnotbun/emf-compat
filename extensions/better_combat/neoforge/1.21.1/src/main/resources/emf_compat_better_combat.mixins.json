@@ -9,8 +9,7 @@
     "GenericPlayerAnimMixin",
     "PlayerRendererMixin",
     "AttackAnimationSubStackMixin",
-    "BetterCombatOneHandedSlamMixin",
-    "EMFAnimationPauseHandlerMixin"
+    "BetterCombatOneHandedSlamMixin"
   ],
   "injectors": {
     "defaultRequire": 1

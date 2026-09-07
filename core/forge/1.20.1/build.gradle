@@ -66,13 +66,15 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
-// No `mixin { add ... }` block on purpose: this module has no mixin classes left — they went
-// away when the core moved onto EMF 3.3's animation hooks. Registering a refmap with reobf makes
-// reobfJar demand build/mixin/emf_compat_core.refmap.json.mappings.tsrg, which the Mixin
-// annotation processor only writes when it has at least one mixin to process, so the block made
-// a clean build fail with FileNotFoundException. The empty emf_compat_core.mixins.json and its
-// mods.toml entry stay — they cost nothing and are what a future mixin would be added to, and
-// the block has to come back at the same time.
+// The core has a mixin again (EMFAnimationPauseHandlerMixin), so this block is back. It had to go
+// while the core had none: it registers a refmap with reobf, which makes reobfJar demand
+// build/mixin/emf_compat_core.refmap.json.mappings.tsrg, and the Mixin annotation processor only
+// writes that file when it has at least one mixin to process. Remove the last mixin and this
+// block has to go with it, or a clean build fails with FileNotFoundException.
+mixin {
+    add sourceSets.main, 'emf_compat_core.refmap.json'
+    config 'emf_compat_core.mixins.json'
+}
 
 processResources {
     var replaceProperties = [minecraft_version      : minecraft_version,

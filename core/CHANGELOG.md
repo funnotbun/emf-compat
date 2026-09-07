@@ -1,5 +1,10 @@
 # EMF Compat Core — Changelog
 
+## 2.1.0
+
+- EMF no longer freezes a player's pack animation while another mod is playing an animation through Player Animation Library. Every addon is covered, not just Better Combat — sitting down, carrying a block or playing an instrument used to leave the whole model frozen
+- Addons now need this version: the Better Combat and Iron's Spells addons handed their copy of this fix over to the core
+
 ## 2.0.0
 
 - Now requires Entity Model Features 3.3.2 or newer

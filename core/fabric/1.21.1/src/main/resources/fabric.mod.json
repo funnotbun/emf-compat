@@ -18,7 +18,8 @@
     ]
   },
   "mixins": [
-    "emf_compat_core.mixins.json"
+    "emf_compat_core.mixins.json",
+    "emf_compat_core.client.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",

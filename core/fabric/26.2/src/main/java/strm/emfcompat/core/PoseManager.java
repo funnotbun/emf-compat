@@ -61,6 +61,7 @@ public final class PoseManager {
         entitySavedPoses.keySet().retainAll(activeUUIDs);
         entitySavedPosesBySource.keySet().retainAll(activeUUIDs);
         bodyFollowDelta.keySet().retainAll(activeUUIDs);
+        PauseOverride.retainOnly(activeUUIDs);
         rootPose.keySet().retainAll(activeUUIDs);
         // The inner maps are removed along with their owning UUID entries above.
         // Do NOT call retainAll on the inner keySets here: their keys are source
@@ -357,6 +358,20 @@ public final class PoseManager {
         }
 
         return new SavedPoses(leftArm, rightArm, parts, bodyBase);
+    }
+
+    /**
+     * Returns {@code true} if any source currently holds a pose for this player.
+     *
+     * <p>Used by {@link PauseOverride} to decide whether EMF's animation pause has to be lifted:
+     * a saved pose only exists because an addon means to restore it, and the restore runs from an
+     * animation hook that a pause skips.</p>
+     */
+    public static boolean hasAnyPose(UUID uuid) {
+        if (!EMFCompatCore.isCompatEnabled()) return false;
+        if (entitySavedPoses.containsKey(uuid)) return true;
+        Map<String, SavedPoses> sources = entitySavedPosesBySource.get(uuid);
+        return sources != null && !sources.isEmpty();
     }
 
     /**

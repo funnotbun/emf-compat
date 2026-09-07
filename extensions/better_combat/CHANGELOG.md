@@ -1,5 +1,10 @@
 # EMF Compat: Better Combat — Changelog
 
+## 2.1.0
+
+- Requires EMF Compat Core 2.1.0
+- The fix that keeps EMF animating during an attack moved into the core, where it now covers every addon instead of this one alone
+
 ## 2.0.0
 
 - Now requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0

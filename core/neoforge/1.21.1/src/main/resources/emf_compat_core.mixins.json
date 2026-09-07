@@ -4,7 +4,9 @@
   "package": "strm.emfcompat.core.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [],
-  "client": [],
+  "client": [
+    "EMFAnimationPauseHandlerMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

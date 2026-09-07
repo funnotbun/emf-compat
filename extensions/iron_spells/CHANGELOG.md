@@ -1,5 +1,11 @@
 # EMF Compat: Iron's Spells 'n Spellbooks — Changelog
 
+## 2.1.0
+
+- Requires EMF Compat Core 2.1.0
+- The fix that keeps EMF animating while casting moved into the core, where it now covers every addon instead of this one alone
+- Turning the addon off in the settings now also stops it lifting EMF's pause; it used to keep doing that regardless
+
 ## 2.0.0
 
 - Now requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0

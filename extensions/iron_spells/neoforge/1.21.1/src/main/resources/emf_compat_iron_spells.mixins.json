@@ -6,8 +6,7 @@
   "mixins": [],
   "client": [
     "PlayerModelMixin",
-    "PlayerRendererMixin",
-    "EMFAnimationPauseHandlerMixin"
+    "PlayerRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
