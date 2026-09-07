@@ -5,6 +5,7 @@
 - Requires EMF Compat Core 2.1.0
 - Skyhook no longer freezes the player's animation on Fabric. The hang pose is now captured and put back after EMF runs, instead of pausing EMF and swapping in the vanilla model, so faces keep animating and the resource pack's model is still used while hanging
 - Skyhook poses are dropped as soon as a player lets go, instead of waiting for the periodic sweep
+- Added a Forge 1.20.1 build, covering Create's skyhook and the Not Enough Animations item-swap fix. Aeronautics, Grappling Hooks, Cosmonautics and Sable Ragdolls have no 1.20.1 release, and Stuff 'N Additions is not included yet
 
 ## 2.0.0
 

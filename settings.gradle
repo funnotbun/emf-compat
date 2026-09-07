@@ -41,6 +41,9 @@ project(":core-fabric-26.2").projectDir = file("core/fabric/26.2")
 include("create-neoforge-1.21.1")
 project(":create-neoforge-1.21.1").projectDir = file("extensions/create/neoforge/1.21.1")
 
+include("create-forge-1.20.1")
+project(":create-forge-1.20.1").projectDir = file("extensions/create/forge/1.20.1")
+
 include("create-fabric-1.21.11")
 project(":create-fabric-1.21.11").projectDir = file("extensions/create/fabric/1.21.11")
 

@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "strm.emfcompat.create.mixin",
+  "plugin": "strm.emfcompat.create.mixin.CreateEMFCompatMixinPlugin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [],
+  "client": [
+    "PlayerSkyhookRendererAccessor",
+    "PlayerSkyhookRendererMixin",
+    "ItemSwapAnimationMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "refmap": "emf_compat_create.refmap.json"
+}
