@@ -12,6 +12,7 @@ public class CreateEMFCompatMixinPlugin implements IMixinConfigPlugin {
     private boolean grapplingHooksLoaded = false;
     private boolean ragdollLoaded = false;
     private boolean neaLoaded = false;
+    private boolean barehandedLoaded;
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -24,6 +25,8 @@ public class CreateEMFCompatMixinPlugin implements IMixinConfigPlugin {
                 .getResource("dev/leo/sableplayerragdoll/neoforge/client/RagdollGrabState.class") != null;
         neaLoaded = classLoader
                 .getResource("dev/tr7zw/notenoughanimations/animations/hands/ItemSwapAnimation.class") != null;
+        barehandedLoaded = classLoader
+                .getResource("dev/juaanp/barehanded/api/BarehandedAPI.class") != null;
     }
 
     @Override
@@ -43,6 +46,9 @@ public class CreateEMFCompatMixinPlugin implements IMixinConfigPlugin {
         }
         if (mixinClassName.equals("strm.emfcompat.create.mixin.HumanoidModelRagdollMixin")) {
             return ragdollLoaded;
+        }
+        if (mixinClassName.equals("strm.emfcompat.create.mixin.BarehandedGrabPoseMixin")) {
+            return barehandedLoaded;
         }
         if (mixinClassName.equals("strm.emfcompat.create.mixin.ItemSwapAnimationMixin")) {
             return neaLoaded;

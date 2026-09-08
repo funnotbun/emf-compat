@@ -1,5 +1,7 @@
 package strm.emfcompat.create;
 
+import net.minecraftforge.fml.ModList;
+
 /**
  * Presence flags for the optional mods this addon layers onto.
  *
@@ -9,6 +11,7 @@ package strm.emfcompat.create;
  */
 public final class CreateMods {
 
+    public static final boolean CREATE_SA = ModList.get().isLoaded("create_sa");
     public static final boolean NEA =
             has("dev/tr7zw/notenoughanimations/animations/hands/ItemSwapAnimation.class");
 

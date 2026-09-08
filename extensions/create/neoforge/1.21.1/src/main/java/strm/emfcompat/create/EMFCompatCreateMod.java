@@ -18,6 +18,7 @@ public class EMFCompatCreateMod {
     public static final String KEY_RAGDOLL = "create.ragdoll";
     public static final String KEY_COSMONAUTICS = "create.cosmonautics";
     public static final String KEY_CREATE_SA = "create.createSa";
+    public static final String KEY_BAREHANDED = "create.barehanded";
     public static final String KEY_NEA_ITEMSWAP = "create.neaItemSwap";
 
     public EMFCompatCreateMod(IEventBus modEventBus) {
@@ -63,6 +64,11 @@ public class EMFCompatCreateMod {
                     "On", "Jetpack flight animation + arm poses for the whisk and block picker.",
                     "Off", "Leave Stuff 'N Additions to EMF.");
         }
+        if (CreateMods.BAREHANDED) {
+            section.addBoolean(KEY_BAREHANDED, "Barehanded", true,
+                    "On", "Keep the bare-handed grab pose in third person while the pack keeps animating.",
+                    "Off", "Leave the grab pose to EMF.");
+        }
         if (CreateMods.NEA) {
             section.addBoolean(KEY_NEA_ITEMSWAP, "NEA item-swap fix", true,
                     "On", "Suppress NotEnoughAnimations' item-swap animation during Create activities.",
@@ -102,6 +108,10 @@ public class EMFCompatCreateMod {
 
     public static boolean isCreateSa() {
         return EMFCompatConfig.getBoolean(KEY_CREATE_SA, true);
+    }
+
+    public static boolean isBarehanded() {
+        return EMFCompatConfig.getBoolean(KEY_BAREHANDED, true);
     }
 
     public static boolean isNeaItemSwap() {

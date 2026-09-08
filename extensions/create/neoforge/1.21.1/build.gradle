@@ -77,6 +77,9 @@ dependencies {
     compileOnly 'maven.modrinth:create:6.0.10+mc1.21.1'
     compileOnly 'maven.modrinth:entity-model-features:3.3.2-neoforge-1.21'
     compileOnly 'maven.modrinth:entitytexturefeatures:7.2.1-neoforge-1.21'
+    // Barehanded 1.6.6 for NeoForge 1.21.1. Only BarehandedAPI.isPlayerGrabbing is
+    // touched — the rest of that API takes Sable types, which stay off the classpath.
+    compileOnly 'maven.modrinth:barehanded:VvSHjZXg'
     compileOnly 'maven.modrinth:create-grappling-hooks:1.2.0'
     compileOnly 'maven.modrinth:sable-ragdolls:0.7.5'
     compileOnly 'maven.modrinth:MPCX6s5C:1o1ia1vh'

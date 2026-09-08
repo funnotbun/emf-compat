@@ -71,6 +71,9 @@ dependencies {
     // updatePlayerList(Collection<UUID>) — so the skyhook sources are shared verbatim with it.
     compileOnly 'maven.modrinth:create:8amzvn9x'
     compileOnly 'maven.modrinth:MPCX6s5C:lY76IcIZ' // Not Enough Animations 1.12.4 for Forge 1.20.1
+    // Create Stuff 'N Additions 2.1.2 for 1.20.1. Only used to resolve item ids at compile
+    // time; the detection itself reads ids and NBT, so it references no create_sa class.
+    compileOnly 'maven.modrinth:create-stuff-additions:uzmWSzyy'
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }

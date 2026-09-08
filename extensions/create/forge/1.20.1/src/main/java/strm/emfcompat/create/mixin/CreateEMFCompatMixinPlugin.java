@@ -14,12 +14,15 @@ import java.util.Set;
 public class CreateEMFCompatMixinPlugin implements IMixinConfigPlugin {
 
     private boolean neaLoaded;
+    private boolean createSaLoaded;
 
     @Override
     public void onLoad(String mixinPackage) {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         neaLoaded = classLoader
                 .getResource("dev/tr7zw/notenoughanimations/animations/hands/ItemSwapAnimation.class") != null;
+        createSaLoaded = classLoader
+                .getResource("net/mcreator/createstuffadditions/CreateSaMod.class") != null;
     }
 
     @Override
@@ -29,6 +32,9 @@ public class CreateEMFCompatMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        if (mixinClassName.equals("strm.emfcompat.create.mixin.CreateSaItemPoseMixin")) {
+            return createSaLoaded;
+        }
         if (mixinClassName.equals("strm.emfcompat.create.mixin.ItemSwapAnimationMixin")) {
             return neaLoaded;
         }

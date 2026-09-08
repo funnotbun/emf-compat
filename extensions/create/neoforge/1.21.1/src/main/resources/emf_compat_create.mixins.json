@@ -16,6 +16,7 @@
     "FlightJumpSuppressMixin",
     "FlightAnimationDetectionMixin",
     "FlightEMFManagerResetMixin",
-    "CreateSaItemPoseMixin"
+    "CreateSaItemPoseMixin",
+    "BarehandedGrabPoseMixin"
   ]
 }

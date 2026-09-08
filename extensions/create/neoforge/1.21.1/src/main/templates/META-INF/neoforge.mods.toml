@@ -63,3 +63,10 @@ type="optional"
 versionRange="*"
 ordering="AFTER"
 side="CLIENT"
+
+[[dependencies.${mod_id}]]
+modId="barehanded"
+type="optional"
+versionRange="[1.6.6,)"
+ordering="AFTER"
+side="CLIENT"
