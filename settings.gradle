@@ -54,6 +54,9 @@ include("create-fabric-26.2")
 project(":create-fabric-26.2").projectDir = file("extensions/create/fabric/26.2")
 
 // Horse Sync addon.
+include("horse-sync-fabric-1.21.1")
+project(":horse-sync-fabric-1.21.1").projectDir = file("extensions/horse-sync/fabric/1.21.1")
+
 include("horse-sync-neoforge-1.21.1")
 project(":horse-sync-neoforge-1.21.1").projectDir = file("extensions/horse-sync/neoforge/1.21.1")
 
@@ -63,6 +66,9 @@ project(":carryon-neoforge-1.21.1").projectDir = file("extensions/carryon/neofor
 
 include("carryon-forge-1.20.1")
 project(":carryon-forge-1.20.1").projectDir = file("extensions/carryon/forge/1.20.1")
+
+include("carryon-fabric-1.21.1")
+project(":carryon-fabric-1.21.1").projectDir = file("extensions/carryon/fabric/1.21.1")
 
 include("carryon-fabric-1.21.11")
 project(":carryon-fabric-1.21.11").projectDir = file("extensions/carryon/fabric/1.21.11")
@@ -93,6 +99,9 @@ include("nea-fabric-26.2")
 project(":nea-fabric-26.2").projectDir = file("extensions/nea/fabric/26.2")
 
 // Immersive Melodies addon.
+include("immersive-melodies-fabric-1.21.1")
+project(":immersive-melodies-fabric-1.21.1").projectDir = file("extensions/immersive_melodies/fabric/1.21.1")
+
 include("immersive-melodies-neoforge-1.21.1")
 project(":immersive-melodies-neoforge-1.21.1").projectDir = file("extensions/immersive_melodies/neoforge/1.21.1")
 
@@ -100,6 +109,9 @@ include("immersive-melodies-forge-1.20.1")
 project(":immersive-melodies-forge-1.20.1").projectDir = file("extensions/immersive_melodies/forge/1.20.1")
 
 // Supplementaries addon.
+include("supplementaries-fabric-1.21.1")
+project(":supplementaries-fabric-1.21.1").projectDir = file("extensions/supplementaries/fabric/1.21.1")
+
 include("supplementaries-neoforge-1.21.1")
 project(":supplementaries-neoforge-1.21.1").projectDir = file("extensions/supplementaries/neoforge/1.21.1")
 
@@ -153,6 +165,9 @@ project(":quark-forge-1.20.1").projectDir = file("extensions/quark/forge/1.20.1"
 // (extensions/create) — loaded conditionally there via optional dependencies.
 
 // Exposure addon.
+include("exposure-fabric-1.21.1")
+project(":exposure-fabric-1.21.1").projectDir = file("extensions/exposure/fabric/1.21.1")
+
 include("exposure-neoforge-1.21.1")
 project(":exposure-neoforge-1.21.1").projectDir = file("extensions/exposure/neoforge/1.21.1")
 
@@ -160,6 +175,9 @@ include("exposure-forge-1.20.1")
 project(":exposure-forge-1.20.1").projectDir = file("extensions/exposure/forge/1.20.1")
 
 // WATUT addon.
+include("watut-fabric-1.21.1")
+project(":watut-fabric-1.21.1").projectDir = file("extensions/watut/fabric/1.21.1")
+
 include("watut-neoforge-1.21.1")
 project(":watut-neoforge-1.21.1").projectDir = file("extensions/watut/neoforge/1.21.1")
 

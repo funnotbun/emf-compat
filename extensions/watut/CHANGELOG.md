@@ -6,3 +6,4 @@
 - Typing, menu and idle poses stay visible over resource-pack animations
 - Respects the toggles you set in WATUT itself
 - Added a config tab
+- Added a Fabric 1.21.1 build
