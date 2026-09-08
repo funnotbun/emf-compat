@@ -4,6 +4,7 @@
 
 - Now requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0
 - Updated for EMF 3.3, which moved the render state the addon reads to decide whether you are gliding
+- Added a Fabric 1.21.1 build, covering Gliders (vc_gliders) and Reliable Gliders. Tictim's Paragliders has no Fabric 1.21.1 release, so that layer is absent there
 
 ## 1.0.0
 

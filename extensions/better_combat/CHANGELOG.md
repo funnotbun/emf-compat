@@ -4,6 +4,7 @@
 
 - Requires EMF Compat Core 2.1.0
 - The fix that keeps EMF animating during an attack moved into the core, where it now covers every addon instead of this one alone
+- Added a Fabric 1.21.1 build
 
 ## 2.0.0
 

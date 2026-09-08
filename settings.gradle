@@ -132,6 +132,13 @@ project(":better-combat-neoforge-1.21.1").projectDir = file("extensions/better_c
 include("better-combat-forge-1.20.1")
 project(":better-combat-forge-1.20.1").projectDir = file("extensions/better_combat/forge/1.20.1")
 
+// Better Combat on Fabric 1.21.1 sits outside the Stonecutter branch below, and outside the
+// usual <addon>/<loader>/<version> layout, because the branch root owns extensions/better_combat/fabric.
+// It could not share that branch's sources anyway: 1.21.1 predates the render-state API, and Better
+// Combat drives its animations through kosmx's Player Animator there rather than zigythebird's.
+include("better-combat-fabric-1.21.1")
+project(":better-combat-fabric-1.21.1").projectDir = file("extensions/better_combat/fabric-1.21.1")
+
 // Better Combat, Fabric side — one Stonecutter branch instead of three flat modules.
 // The sources of 1.21.11, 26.1.2 and 26.2 were byte-identical, so the branch carries a single
 // src/ and needs no version directives at all; only the buildscript differs, and only because
@@ -147,6 +154,9 @@ stonecutter {
         vcsVersion = "26.2"
     }
 }
+
+include("gliders-fabric-1.21.1")
+project(":gliders-fabric-1.21.1").projectDir = file("extensions/gliders/fabric/1.21.1")
 
 include("gliders-fabric-26.1.2")
 project(":gliders-fabric-26.1.2").projectDir = file("extensions/gliders/fabric/26.1.2")
