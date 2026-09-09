@@ -118,6 +118,10 @@ project(":supplementaries-neoforge-1.21.1").projectDir = file("extensions/supple
 include("supplementaries-forge-1.20.1")
 project(":supplementaries-forge-1.20.1").projectDir = file("extensions/supplementaries/forge/1.20.1")
 
+// Hackers 'n Slashers addon.
+include("hackers-and-slashers-neoforge-1.21.1")
+project(":hackers-and-slashers-neoforge-1.21.1").projectDir = file("extensions/hackers_and_slashers/neoforge/1.21.1")
+
 // Iron's Spells addon.
 include("iron-spells-neoforge-1.21.1")
 project(":iron-spells-neoforge-1.21.1").projectDir = file("extensions/iron_spells/neoforge/1.21.1")

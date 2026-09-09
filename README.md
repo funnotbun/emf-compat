@@ -15,6 +15,7 @@ Resource-pack animations through EMF override everything the player model does, 
 | [Create](extensions/create/README.md) | Skyhook, grappling hooks, handles, jetpacks, physics objects | [link](https://modrinth.com/project/emf-compat-create) |
 | [Exposure](extensions/exposure/README.md) | Photos, selfies and tripod cameras | [link](https://modrinth.com/project/emf-compat-exposure) |
 | [Gliders](extensions/gliders/README.md) | Paragliders, Gliders, Reliable Gliders | [link](https://modrinth.com/project/emf-compat-gliders) |
+| [Hackers 'n Slashers](extensions/hackers_and_slashers/README.md) | Attacks, blocks, rolls and weapon stances | not published yet |
 | [Horse Sync](extensions/horse-sync/README.md) | Sitting steady on an animated horse | [link](https://modrinth.com/project/emf-compat-horse-sync) |
 | [Immersive Melodies](extensions/immersive_melodies/README.md) | Playing instruments | [link](https://modrinth.com/project/emf-compat-immersive-melodies) |
 | [Iron's Spells 'n Spellbooks](extensions/iron_spells/README.md) | Spellcasting poses | [link](https://modrinth.com/project/emf-compat-irons-spells-n-spellbooks) |
