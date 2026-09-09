@@ -2,7 +2,7 @@ package strm.emfcompat.hackersandslashers.mixin;
 
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Entity;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -23,9 +23,19 @@ import java.util.UUID;
  * Captures the pose Hackers 'n Slashers has put on the arms, so the core can restore it after EMF
  * has animated the model from the resource pack.
  *
- * <p>The animation library applies its own result from a mixin on {@code PlayerModel.setupAnim} at
- * priority 2001, so this runs at 2500 to read what it left behind — the same ordering the Better
- * Combat addon uses.</p>
+ * <p>Note which {@code setupAnim} this targets. {@code PlayerModel} has two: the real
+ * {@code setupAnim(LivingEntity, ...)} it inherits from {@code HumanoidModel}, and the synthetic
+ * bridge {@code setupAnim(Entity, ...)} that {@code EntityModel} declares and the renderer
+ * actually calls. zigythebird's animation library — the one Hackers 'n Slashers drives — applies
+ * its result at RETURN of the <em>bridge</em>, which runs after the real method has already
+ * returned. Capturing at the real method's RETURN, the way the Better Combat addon does, therefore
+ * reads the model before any of this mod's animation has been applied, and pins whatever the pose
+ * was beforehand. Better Combat gets away with it because kosmx's library, which it uses, injects
+ * into the real method instead.</p>
+ *
+ * <p>So this targets the bridge, at priority 2500 against the library's 2001 so it runs after it
+ * at the same instruction. The descriptor is spelled out rather than left as a bare name, so the
+ * selector can only mean the bridge and never the real method.</p>
  *
  * <p>Third person only. Hackers 'n Slashers keeps a separate first-person pose layer and its own
  * item-in-hand renderer mixins, so the first-person arms never come from the model captured here;
@@ -45,8 +55,8 @@ public class PlayerModelMixin {
     @Unique
     private static final float LEG_MOVE_THRESHOLD = 0.15f;
 
-    @Inject(method = "setupAnim", at = @At("RETURN"))
-    private void emfcompat$captureHnSPose(LivingEntity entity, float limbSwing, float limbSwingAmount,
+    @Inject(method = "setupAnim(Lnet/minecraft/world/entity/Entity;FFFFF)V", at = @At("RETURN"))
+    private void emfcompat$captureHnSPose(Entity entity, float limbSwing, float limbSwingAmount,
                                           float ageInTicks, float netHeadYaw, float headPitch,
                                           CallbackInfo ci) {
         if (!(entity instanceof AbstractClientPlayer player)) {
