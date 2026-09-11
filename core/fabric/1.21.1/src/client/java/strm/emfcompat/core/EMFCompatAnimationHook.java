@@ -2,6 +2,8 @@ package strm.emfcompat.core;
 
 import net.minecraft.client.model.HumanoidModel;
 import org.joml.Vector3f;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import traben.entity_model_features.EMFAnimationApi;
 import traben.entity_model_features.models.animation.state.EMFBipedPose;
 import traben.entity_model_features.models.animation.state.EMFEntityRenderState;
@@ -26,6 +28,8 @@ import java.util.UUID;
  */
 public final class EMFCompatAnimationHook extends EMFAnimationApi.EMFAnimationHook {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("emf_compat");
+
     private EMFCompatAnimationHook() {
     }
 
@@ -35,7 +39,7 @@ public final class EMFCompatAnimationHook extends EMFAnimationApi.EMFAnimationHo
             EMFAnimationApi.registerAnimationHook(new EMFCompatAnimationHook());
         } catch (Throwable t) {
             // Nothing restores poses without the hook, but the game itself is still fine.
-            System.err.println("[EMF Compat] could not register the EMF animation hook: " + t);
+            LOGGER.warn("[EMF Compat] could not register the EMF animation hook", t);
         }
     }
 
@@ -230,22 +234,22 @@ public final class EMFCompatAnimationHook extends EMFAnimationApi.EMFAnimationHo
 
         if (headPart != null && headwearPart != null
                 && !headPart.hasChild("headwear") && !headPart.hasChild("hat")) {
-            new PoseSnapshot(headPart).apply(headwearPart);
+            PoseSnapshot.copy(headPart, headwearPart);
         }
         if (leftArmPart != null && leftSleeve != null && !leftArmPart.hasChild("left_sleeve")) {
-            new PoseSnapshot(leftArmPart).apply(leftSleeve);
+            PoseSnapshot.copy(leftArmPart, leftSleeve);
         }
         if (rightArmPart != null && rightSleeve != null && !rightArmPart.hasChild("right_sleeve")) {
-            new PoseSnapshot(rightArmPart).apply(rightSleeve);
+            PoseSnapshot.copy(rightArmPart, rightSleeve);
         }
         if (leftLegPart != null && leftPants != null && !leftLegPart.hasChild("left_pants")) {
-            new PoseSnapshot(leftLegPart).apply(leftPants);
+            PoseSnapshot.copy(leftLegPart, leftPants);
         }
         if (rightLegPart != null && rightPants != null && !rightLegPart.hasChild("right_pants")) {
-            new PoseSnapshot(rightLegPart).apply(rightPants);
+            PoseSnapshot.copy(rightLegPart, rightPants);
         }
         if (bodyPart != null && jacket != null && !bodyPart.hasChild("jacket")) {
-            new PoseSnapshot(bodyPart).apply(jacket);
+            PoseSnapshot.copy(bodyPart, jacket);
         }
     }
 

@@ -6,6 +6,8 @@ import com.zigythebird.playeranimcore.animation.layered.IAnimation;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.fml.ModList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import strm.emfcompat.core.PoseSnapshot;
 import traben.entity_model_features.EMFAnimationApi;
 import traben.entity_model_features.models.animation.state.EMFEntityRenderState;
@@ -27,6 +29,8 @@ import java.util.Map;
  */
 public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHook {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("emf_compat");
+
     private static final ThreadLocal<Map<EMFModelPartVanilla, PoseSnapshot>> SNAPSHOTS =
             ThreadLocal.withInitial(HashMap::new);
 
@@ -37,7 +41,7 @@ public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHo
         try {
             EMFAnimationApi.registerAnimationHook(new TakeASeatAnimationHook());
         } catch (Throwable t) {
-            System.err.println("[EMF Compat: Take a Seat] could not register the EMF animation hook: " + t);
+            LOGGER.warn("[EMF Compat: Take a Seat] could not register the EMF animation hook", t);
         }
     }
 

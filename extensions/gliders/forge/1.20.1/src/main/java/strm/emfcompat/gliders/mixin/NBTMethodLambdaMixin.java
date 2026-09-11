@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import strm.emfcompat.gliders.compat.FlightAnimationSupport;
 import strm.emfcompat.gliders.compat.GlidingState;
 import traben.entity_model_features.models.animation.AnimSetupContext;
-import traben.entity_model_features.models.animation.math.expression_tree.MathMethod;
 import traben.entity_model_features.models.animation.math.expression_tree.MathValue;
 import traben.entity_model_features.models.animation.math.methods.emf.NBTMethod;
 

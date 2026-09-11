@@ -61,9 +61,6 @@ repositories {
         }
         filter { includeGroup 'maven.modrinth' }
     }
-    flatDir {
-        dirs 'libs'
-    }
 }
 
 configurations {

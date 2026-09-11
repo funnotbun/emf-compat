@@ -47,6 +47,9 @@ public final class CrouchNormalizer {
      */
     public static final String KEY_ENABLED = "core.crouchFix";
 
+    /** Reused by {@link #normalise}; see the note there. */
+    private static final Matrix4f DELTA = new Matrix4f();
+
     /** Longer than the libraries' sneak fade-out, with room to spare. */
     private static final long LINGER_NANOS = 350_000_000L;
 
@@ -90,22 +93,23 @@ public final class CrouchNormalizer {
 
     /**
      * Removes the vertical translation that was added on top of {@code before}, leaving everything
-     * else {@code pose} carries. Returns how much was removed, in blocks.
+     * else {@code pose} carries.
      *
      * <p>Worked in the frame the entity was placed in: {@code before⁻¹ · pose} is exactly what
      * {@code setupRotations} added, and zeroing its Y translation before multiplying it back on is
      * the same as moving the result back down (or up) along world Y — whatever rotation the libraries
      * applied in between.</p>
      */
-    public static float normalise(Matrix4f before, Matrix4f pose, Mode mode) {
-        Matrix4f delta = new Matrix4f(before).invert().mul(pose);
+    public static void normalise(Matrix4f before, Matrix4f pose, Mode mode) {
+        // Scratch, not a new matrix: this runs per crouching player per frame, on the render
+        // thread only, and the value never outlives the call.
+        Matrix4f delta = DELTA.set(before).invert().mul(pose);
         float dy = delta.m31();
         if (dy == 0f || (mode == Mode.DOWNWARD_ONLY && dy > 0f)) {
-            return 0f;
+            return;
         }
         delta.m31(0f);
         pose.set(before).mul(delta);
-        return dy;
     }
 
     /** Drops state for players no longer in the level. Called by the core cleanup. */
