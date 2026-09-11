@@ -38,22 +38,6 @@ public final class BodyPartSync {
     }
 
     /**
-     * Returns the stored base pose, or {@code null} if none was captured.
-     */
-    public static PoseSnapshot getBase(UUID uuid, String partName) {
-        State state = getStateOrNull(uuid, partName);
-        return state == null ? null : state.base;
-    }
-
-    /**
-     * Returns the stored current pose, or {@code null} if none was captured.
-     */
-    public static PoseSnapshot getCurrent(UUID uuid, String partName) {
-        State state = getStateOrNull(uuid, partName);
-        return state == null ? null : state.current;
-    }
-
-    /**
      * Returns {@code true} if both a base and a current pose exist for the part.
      */
     public static boolean hasDelta(UUID uuid, String partName) {
@@ -65,7 +49,7 @@ public final class BodyPartSync {
      * Returns the positional delta (current - base) in model pixels.
      */
     public static Vector3f getTranslationDelta(UUID uuid, String partName) {
-        State state = requireState(uuid, partName);
+        State state = getState(uuid, partName);
         return new Vector3f(
                 state.current.x - state.base.x,
                 state.current.y - state.base.y,
@@ -78,7 +62,7 @@ public final class BodyPartSync {
      * the [-π, π] range to avoid 360° wrap flips.
      */
     public static Vector3f getRotationDelta(UUID uuid, String partName) {
-        State state = requireState(uuid, partName);
+        State state = getState(uuid, partName);
         return new Vector3f(
                 angleDelta(state.current.xRot, state.base.xRot),
                 angleDelta(state.current.yRot, state.base.yRot),
@@ -93,37 +77,12 @@ public final class BodyPartSync {
         STATES.remove(uuid);
     }
 
-    /**
-     * Removes a single tracked part for the given entity.
-     */
-    public static void clearPart(UUID uuid, String partName) {
-        Map<String, State> map = STATES.get(uuid);
-        if (map == null) return;
-        map.remove(partName);
-        if (map.isEmpty()) {
-            STATES.remove(uuid);
-        }
-    }
-
-    /**
-     * Removes all tracked data.
-     */
-    public static void clearAll() {
-        STATES.clear();
-    }
-
-    /**
-     * Normalises an angular delta to the [-π, π] range.
-     */
-    public static float angleDelta(float current, float base) {
+    /** Normalises an angular delta to the [-π, π] range. */
+    private static float angleDelta(float current, float base) {
         float delta = current - base;
         while (delta > (float) Math.PI) delta -= 2.0f * (float) Math.PI;
         while (delta < -(float) Math.PI) delta += 2.0f * (float) Math.PI;
         return delta;
-    }
-
-    private static State requireState(UUID uuid, String partName) {
-        return getState(uuid, partName);
     }
 
     private static State getState(UUID uuid, String partName) {

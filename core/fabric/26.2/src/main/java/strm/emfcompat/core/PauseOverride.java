@@ -24,6 +24,9 @@ import java.util.UUID;
  * pose and is independent of pausing. The Create addon used to work that way for the skyhook and
  * now captures the hang pose instead, precisely so the pack keeps animating the face.</p>
  *
+ * <p>A pose that is fading out (see {@link PoseInterpolator}) counts as a pose here: the fade runs
+ * from the same hook, and a pause landing halfway through it would snap the limb after all.</p>
+ *
  * <p>The linger exists because PAL keeps fading an animation out for a frame or two after the
  * addon has already dropped its pose. Without it the model would snap back to vanilla for exactly
  * those frames, between the addon letting go and EMF resuming.</p>
@@ -53,7 +56,9 @@ public final class PauseOverride {
         if (uuid == null) {
             return false;
         }
-        if (PoseManager.hasAnyPose(uuid)) {
+        // A pose that is fading back out still needs the hook to run: a paused entity is skipped
+        // before it, which would strand the fade halfway and snap the limb after all.
+        if (PoseManager.hasAnyPose(uuid) || PoseInterpolator.isActive(uuid)) {
             LINGER.put(uuid, LINGER_FRAMES);
             return true;
         }

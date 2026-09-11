@@ -3,6 +3,7 @@ package strm.emfcompat.core;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.world.entity.player.Player;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 /**
  * Stores captured model poses and tracks the current animation frame.
@@ -36,7 +38,7 @@ public final class PoseManager {
     // The body-follow translation delta the core applied to a player's arms this frame
     // (model-space pixels, currentBody - bodyBase). Exposed so consumers can move objects
     // attached to the hands by the same amount, keeping them in sync with the arms.
-    private static final Map<UUID, org.joml.Vector3f> bodyFollowDelta = new HashMap<>();
+    private static final Map<UUID, Vector3f> bodyFollowDelta = new HashMap<>();
 
     // The animated pose of the model's root part. Every model part hangs off the root, so a pack
     // animating it moves the whole player — arms included — without changing any part's own
@@ -62,6 +64,8 @@ public final class PoseManager {
         entitySavedPosesBySource.keySet().retainAll(activeUUIDs);
         bodyFollowDelta.keySet().retainAll(activeUUIDs);
         PauseOverride.retainOnly(activeUUIDs);
+        PoseInterpolator.retainOnly(activeUUIDs);
+        CrouchNormalizer.pruneExpired();
         rootPose.keySet().retainAll(activeUUIDs);
         // The inner maps are removed along with their owning UUID entries above.
         // Do NOT call retainAll on the inner keySets here: their keys are source
@@ -73,7 +77,7 @@ public final class PoseManager {
      * Records the body-follow translation delta applied to the given player's arms this
      * frame. Passing {@code null} clears it. Called by the core restore.
      */
-    public static void setBodyFollowDelta(UUID uuid, org.joml.Vector3f delta) {
+    public static void setBodyFollowDelta(UUID uuid, Vector3f delta) {
         if (delta == null) {
             bodyFollowDelta.remove(uuid);
         } else {
@@ -86,7 +90,7 @@ public final class PoseManager {
      * frame (model-space pixels), or {@code null} if the player has no body-follow pose.
      * Consumers can apply the same delta to hand-attached objects to keep them in sync.
      */
-    public static org.joml.Vector3f getBodyFollowDelta(UUID uuid) {
+    public static Vector3f getBodyFollowDelta(UUID uuid) {
         if (!EMFCompatCore.isCompatEnabled()) return null;
         return bodyFollowDelta.get(uuid);
     }
@@ -163,7 +167,7 @@ public final class PoseManager {
      * capture, so the pose follows the torso. See {@link SavedPoses}.
      */
     public static void savePoses(UUID uuid, String source, PoseSnapshot leftArm, PoseSnapshot rightArm,
-                                 Map<String, PoseSnapshot> parts, org.joml.Vector3f bodyBase) {
+                                 Map<String, PoseSnapshot> parts, Vector3f bodyBase) {
         savePoses(uuid, source, new SavedPoses(leftArm, rightArm, parts, bodyBase));
     }
 
@@ -307,7 +311,7 @@ public final class PoseManager {
         Map<String, PoseSnapshot> parts = new HashMap<>();
         PoseSnapshot leftArm = null;
         PoseSnapshot rightArm = null;
-        org.joml.Vector3f bodyBase = null;
+        Vector3f bodyBase = null;
 
         // The default source is the lowest-priority base.
         if (defaultPoses != null) {
@@ -358,6 +362,29 @@ public final class PoseManager {
         }
 
         return new SavedPoses(leftArm, rightArm, parts, bodyBase);
+    }
+
+    /**
+     * Returns {@code true} if every source currently posing this player satisfies {@code test},
+     * vacuously so when none does.
+     *
+     * <p>Used by {@link PoseInterpolator} to decide whether a player's restore may be faded: the
+     * sources are merged per part before anything is applied, so the decision has to hold for all
+     * of them at once.</p>
+     */
+    public static boolean allActiveSourcesMatch(UUID uuid, Predicate<String> test) {
+        if (entitySavedPoses.containsKey(uuid) && !test.test(DEFAULT_SOURCE)) {
+            return false;
+        }
+        Map<String, SavedPoses> sources = entitySavedPosesBySource.get(uuid);
+        if (sources != null) {
+            for (String source : sources.keySet()) {
+                if (!test.test(source)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
