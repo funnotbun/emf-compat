@@ -84,6 +84,30 @@ allprojects {
 
         p.tasks.build.finalizedBy('copyToUpload')
 
+        // Mixin configs are only looked up when the game starts, so a config that never made it
+        // into the jar builds fine and then crashes the loader on launch. NEA Fabric 1.21.1 shipped
+        // exactly like that. Check the finished jar instead of the sources: it is what the loader
+        // reads, with every template already expanded.
+        def verifyMixins = p.tasks.register('verifyMixinConfigs') {
+            group = 'verification'
+            description = 'Checks that every mixin config the mod metadata names is in the jar, with its classes.'
+            def jarTask = p.tasks.findByName('reobfJar') ?: p.tasks.findByName('remapJar') ?: p.tasks.jar
+            dependsOn jarTask
+            def jarFile = jarTask.archiveFile
+            inputs.file(jarFile)
+            def marker = p.layout.buildDirectory.file('verifyMixinConfigs.ok')
+            outputs.file(marker)
+            doLast {
+                verifyMixinConfigsIn(jarFile.get().asFile, p.path, p.logger)
+                def out = marker.get().asFile
+                out.parentFile.mkdirs()
+                out.text = 'ok'
+            }
+        }
+        p.tasks.named('check') { dependsOn verifyMixins }
+        // A jar that would crash the loader must never reach the upload folder.
+        p.tasks.named('copyToUpload') { dependsOn verifyMixins }
+
         if (modSuffix != null) {
             def iconSource = rootProject.file("resources/icons/icon_emf_compat_${modSuffix}.png")
             if (iconSource.exists()) {
@@ -96,6 +120,80 @@ allprojects {
                 }
             }
         }
+    }
+}
+
+/**
+ * Reads the mod metadata inside a built jar and fails if any mixin config it names is missing,
+ * is not valid JSON, or lists a mixin class the jar does not contain. Covers all three loaders:
+ * fabric.mod.json, [[mixins]] blocks in neoforge.mods.toml / mods.toml, and the MixinConfigs
+ * manifest attribute Forge 1.20.1 uses. A refmap that is named but absent fails the build only for
+ * Forge 1.20.1, the one runtime here that renames classes at launch; elsewhere it is harmless.
+ */
+def verifyMixinConfigsIn(File jar, String projectPath, org.gradle.api.logging.Logger logger) {
+    def zip = new java.util.jar.JarFile(jar)
+    try {
+        def has = { String name -> zip.getEntry(name) != null }
+        def read = { String name -> zip.getInputStream(zip.getEntry(name)).getText('UTF-8') }
+
+        Set<String> configs = new LinkedHashSet<>()
+        if (has('fabric.mod.json')) {
+            def meta = new groovy.json.JsonSlurper().parseText(read('fabric.mod.json'))
+            (meta.mixins ?: []).each { configs << (it instanceof String ? it : it.config) }
+        }
+        ['META-INF/neoforge.mods.toml', 'META-INF/mods.toml'].findAll { has(it) }.each { toml ->
+            boolean inMixins = false
+            read(toml).eachLine { line ->
+                def trimmed = line.trim()
+                if (trimmed.startsWith('[')) inMixins = (trimmed == '[[mixins]]')
+                def m = inMixins ? (trimmed =~ /^config\s*=\s*"([^"]+)"/) : null
+                if (m) configs << m[0][1]
+            }
+        }
+        // Forge 1.20.1 is the only runtime here that renames classes (to SRG) at launch, which
+        // is what makes a refmap mandatory.
+        boolean forgeRuntime = has('META-INF/mods.toml') && !has('META-INF/neoforge.mods.toml')
+        def manifestConfigs = zip.manifest?.mainAttributes?.getValue('MixinConfigs')
+        manifestConfigs?.split(',')*.trim()?.findAll { it }?.each { configs << it }
+
+        def errors = []
+        configs.each { config ->
+            if (!has(config)) {
+                errors << "mixin config '${config}' is named by the metadata but is not in the jar"
+                return
+            }
+            def json
+            try {
+                json = new groovy.json.JsonSlurper().parseText(read(config))
+            } catch (Exception e) {
+                errors << "mixin config '${config}' is not valid JSON: ${e.message}"
+                return
+            }
+            def pkg = (json.package ?: '').replace('.', '/')
+            ['mixins', 'client', 'server'].each { side ->
+                (json[side] ?: []).each { String name ->
+                    def cls = "${pkg}/${name.replace('.', '/')}.class"
+                    if (!has(cls)) errors << "mixin config '${config}' lists ${side} mixin '${name}', but ${cls} is not in the jar"
+                }
+            }
+            if (json.refmap && !has(json.refmap)) {
+                if (forgeRuntime) {
+                    errors << "mixin config '${config}' names refmap '${json.refmap}', which is not in the jar — " +
+                            "Forge 1.20.1 runs on SRG names, so without it every injection misses its target"
+                } else {
+                    // NeoForge runs on Mojang names and Loom rewrites Fabric targets in the bytecode,
+                    // so neither needs the file; Mixin just notes its absence.
+                    logger.info("${projectPath}: mixin config '${config}' names refmap '${json.refmap}', which is not in the jar (not needed here)")
+                }
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new GradleException("${projectPath}: ${jar.name} would fail to launch:\n  - " + errors.join('\n  - '))
+        }
+        logger.info("${projectPath}: ${configs.size()} mixin config(s) verified in ${jar.name}")
+    } finally {
+        zip.close()
     }
 }
 
