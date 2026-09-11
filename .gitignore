@@ -78,3 +78,6 @@ documentation.md
 
 # Local EMF / ETF pre-release jars, never ours to redistribute.
 libs/*.jar
+
+# Python
+__pycache__/
