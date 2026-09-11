@@ -4,6 +4,10 @@ import com.zigythebird.playeranim.api.PlayerAnimationAccess;
 import com.zigythebird.playeranimcore.animation.layered.IAnimation;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * Reads which of Hackers 'n Slashers' animation layers are currently playing on a player.
@@ -58,12 +62,102 @@ public final class HnSCompat {
     }
 
     /**
-     * {@code true} while the stance layer is playing — the way the mod holds a player who is
-     * merely carrying a weapon, as opposed to swinging it. It lasts for as long as the weapon is
-     * held, which is why it is captured separately and at a lower priority.
+     * {@code true} while the stance layer is playing a real weapon stance — the way the mod holds a
+     * player who is merely carrying a weapon, as opposed to swinging it. It lasts for as long as the
+     * weapon is held, which is why it is captured separately and at a lower priority.
+     *
+     * <p>"The layer is active" is not enough. {@code DynamicAnimationHandler.updatePlayerPose} sets
+     * its target to {@code hackersandslashers:idle} before it looks at the item at all, and keeps it
+     * for anything without a weapon preset — a lantern, food, a block. That animation is an empty
+     * placeholder with no bones, but it leaves the layer active, so capturing on activity alone froze
+     * the arms in whatever pose they had for every item in the game. Two-handed items without a
+     * preset fall back to {@code hns_greatsword_idle} instead, which is a real stance: the style is
+     * guessed from the item's name, so a fishing rod ("rod", a staff word) gets the greatsword pose.</p>
+     *
+     * <p>So this asks the same question the mod's handler does — does the held item have a preset
+     * with a stance — and only captures when it does.</p>
      */
     public static boolean isStanceActive(AbstractClientPlayer player) {
-        return isLayerActive(player, POSE_LAYER);
+        if (!isLayerActive(player, POSE_LAYER)) {
+            return false;
+        }
+        Boolean hasStance = heldItemHasStance(player);
+        if (hasStance != null) {
+            return hasStance;
+        }
+        // The preset API moved or went away: fall back to recognising the placeholder by name.
+        ResourceLocation playing = currentPoseAnim(player);
+        return playing == null || !IDLE_PLACEHOLDER.equals(playing);
+    }
+
+    /** The empty animation the stance layer holds when the item has no stance of its own. */
+    private static final ResourceLocation IDLE_PLACEHOLDER = layer("idle");
+
+    // Resolved once, reflectively: the mod is not on the compile classpath (see the class comment).
+    private static boolean reflectionResolved;
+    private static Method resolvePresetStats;
+    private static Field presetStances;
+    private static Field stancesOnIdle;
+    private static Field currentPoseAnim;
+
+    private static void resolveReflection() {
+        if (reflectionResolved) {
+            return;
+        }
+        reflectionResolved = true;
+        try {
+            Class<?> itemHelper = Class.forName("net.dndats.hackersandslashers.utils.helper.ItemHelper");
+            resolvePresetStats = itemHelper.getMethod("resolvePresetStats", ItemStack.class);
+            Class<?> preset = Class.forName("net.dndats.hackersandslashers.datapacks.models.WeaponStatOverride");
+            presetStances = preset.getField("stances");
+            stancesOnIdle = presetStances.getType().getField("onIdle");
+        } catch (Throwable t) {
+            resolvePresetStats = null;
+        }
+        try {
+            currentPoseAnim = Class.forName("net.dndats.api.animations.HnSPlayerPoseController")
+                    .getField("currentPoseAnim");
+        } catch (Throwable t) {
+            currentPoseAnim = null;
+        }
+    }
+
+    /**
+     * Whether the main-hand item has a stance preset, exactly as the mod's own pose handler decides
+     * it; {@code null} if that could not be asked.
+     */
+    private static Boolean heldItemHasStance(AbstractClientPlayer player) {
+        resolveReflection();
+        if (resolvePresetStats == null) {
+            return null;
+        }
+        try {
+            Object preset = resolvePresetStats.invoke(null, player.getMainHandItem());
+            if (preset == null) {
+                return false;
+            }
+            Object stances = presetStances.get(preset);
+            return stances != null && stancesOnIdle.get(stances) != null;
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    /** The animation the stance layer is playing, or {@code null} if it cannot be read. */
+    private static ResourceLocation currentPoseAnim(AbstractClientPlayer player) {
+        resolveReflection();
+        if (currentPoseAnim == null) {
+            return null;
+        }
+        try {
+            IAnimation animation = PlayerAnimationAccess.getPlayerAnimationLayer(player, POSE_LAYER);
+            if (animation == null || !currentPoseAnim.getDeclaringClass().isInstance(animation)) {
+                return null;
+            }
+            return (ResourceLocation) currentPoseAnim.get(animation);
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     private static boolean isLayerActive(AbstractClientPlayer player, ResourceLocation layer) {
