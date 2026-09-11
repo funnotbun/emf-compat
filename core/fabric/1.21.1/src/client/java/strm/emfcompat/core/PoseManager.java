@@ -56,6 +56,8 @@ public final class PoseManager {
         entitySavedPosesBySource.keySet().retainAll(activeUUIDs);
         bodyFollowDelta.keySet().retainAll(activeUUIDs);
         PauseOverride.retainOnly(activeUUIDs);
+        PoseInterpolator.retainOnly(activeUUIDs);
+        CrouchNormalizer.retainOnly(activeUUIDs);
         // The inner maps are removed along with their owning UUID entries above.
         // Do NOT call retainAll on the inner keySets here: their keys are source
         // names (Strings), not UUIDs, so that would incorrectly wipe all named
@@ -328,6 +330,30 @@ public final class PoseManager {
         }
 
         return new SavedPoses(leftArm, rightArm, parts, bodyBase);
+    }
+
+
+    /**
+     * Returns {@code true} if every source currently posing this player satisfies {@code test},
+     * vacuously so when none does.
+     *
+     * <p>Used by {@link PoseInterpolator} to decide whether a player's restore may be faded: the
+     * sources are merged per part before anything is applied, so the decision has to hold for all
+     * of them at once.</p>
+     */
+    public static boolean allActiveSourcesMatch(UUID uuid, java.util.function.Predicate<String> test) {
+        if (entitySavedPoses.containsKey(uuid) && !test.test(DEFAULT_SOURCE)) {
+            return false;
+        }
+        Map<String, SavedPoses> sources = entitySavedPosesBySource.get(uuid);
+        if (sources != null) {
+            for (String source : sources.keySet()) {
+                if (!test.test(source)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**

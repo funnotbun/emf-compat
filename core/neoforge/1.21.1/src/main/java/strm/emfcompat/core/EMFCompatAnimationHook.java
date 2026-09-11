@@ -20,9 +20,9 @@ import java.util.UUID;
  * resource-pack animation has been applied and before anything is drawn — the exact point the
  * mixins were reaching for, but as a contract rather than an injection into internals.</p>
  *
- * <p>Only {@code onAnimationEnd} is used. {@code onAnimationStart} could cancel EMF's animation
- * outright, which would defeat the point: the parts an addon does not claim are supposed to keep
- * playing the pack's animation.</p>
+ * <p>{@code onAnimationEnd} puts the captured poses back. {@code onAnimationStart} is used only to
+ * repair the crouch pose the pack reads; it never cancels the animation, which would defeat the
+ * point — the parts an addon does not claim are supposed to keep playing the pack's animation.</p>
  */
 public final class EMFCompatAnimationHook extends EMFAnimationApi.EMFAnimationHook {
 
@@ -37,6 +37,59 @@ public final class EMFCompatAnimationHook extends EMFAnimationApi.EMFAnimationHo
             // Nothing restores poses without the hook, but the game itself is still fine.
             System.err.println("[EMF Compat] could not register the EMF animation hook: " + t);
         }
+    }
+
+    // What vanilla puts on the model while crouching (HumanoidModel#setupAnim). Packs read these
+    // back to detect the crouch, so the exact values matter.
+    private static final float CROUCH_BODY_X_ROT = 0.5f;
+    private static final float CROUCH_BODY_Y = 3.2f;
+    private static final float CROUCH_HEAD_Y = 4.2f;
+
+    /**
+     * Puts vanilla's crouch pose back on the body and head before the pack's animation is worked
+     * out. Never cancels: the return value is only ever {@code true}.
+     *
+     * <p>Packs cannot ask "is this player crouching" and trust the answer — the entity flag is set
+     * in states where the model is not in the crouch pose at all — so they read the model instead.
+     * Fresh Animations' player pack tests it exactly:</p>
+     *
+     * <pre>var.sneak2 = if( !is_gliding &amp;&amp; body.rx==0.5 &amp;&amp; body.ty==3.2 &amp;&amp; head.ty==4.2, 1, 0)</pre>
+     *
+     * <p>Those are vanilla's own numbers. Any mod that poses the body while the player crouches —
+     * Better Combat mid-attack, a Hackers 'n Slashers stance, a TACZ aim — overwrites them, the
+     * test fails, and every term built on it switches off at once: the pack drops {@code sneak2}
+     * out of the body, both legs and both arms, and the whole model shifts about two pixels. It
+     * reads as the character sinking into the ground for the length of the animation.</p>
+     *
+     * <p>So the fix is on the way in, not the way out. These three values are consumed by the
+     * pack's own detection and then overwritten by its own output, so writing them changes what the
+     * pack concludes, not what it draws.</p>
+     */
+    @Override
+    public boolean onAnimationStart(AnimationContext context, boolean isCancelledByHook) {
+        try {
+            emfcompat$repairCrouchPose(context.activeState(), context.animatingModelRoot());
+        } catch (Throwable t) {
+            // EMF answers a throw out of animation with disabling every animation on the model for
+            // the rest of the session. Nothing here is worth that.
+        }
+        return true;
+    }
+
+    private static void emfcompat$repairCrouchPose(EMFEntityRenderState state, EMFModelPartRoot root) {
+        if (state == null || !state.isSneaking() || state.isFirstPersonHand()) return;
+        // Shares its switch with CrouchNormalizer, which fixes the other half of the same crouch.
+        if (!CrouchNormalizer.isEnabled()) return;
+
+        Map<String, EMFModelPartVanilla> byName = root.getAllVanillaPartsByNameEMF();
+        EMFModelPartVanilla body = byName.get("body");
+        EMFModelPartVanilla head = byName.get("head");
+        // Both parts, or this is not a model the crouch pose means anything on.
+        if (body == null || head == null) return;
+
+        body.xRot = CROUCH_BODY_X_ROT;
+        body.y = CROUCH_BODY_Y;
+        head.y = CROUCH_HEAD_Y;
     }
 
     @Override
@@ -61,9 +114,10 @@ public final class EMFCompatAnimationHook extends EMFAnimationApi.EMFAnimationHo
         if (EMFCompatCore.isLocalPlayerInFirstPerson(uuid)) return;
 
         SavedPoses savedPoses = PoseManager.getSavedPoses(uuid);
-        if (savedPoses == null) return;
+        boolean fading = PoseInterpolator.isActive(uuid);
+        if (savedPoses == null && !fading) return;
 
-        Map<String, PoseSnapshot> parts = savedPoses.parts();
+        Map<String, PoseSnapshot> parts = savedPoses == null ? null : savedPoses.parts();
         if (parts != null) {
             emfcompat$applyIfPresent(parts, "head", model.head);
             emfcompat$applyIfPresent(parts, "body", model.body);
@@ -73,11 +127,24 @@ public final class EMFCompatAnimationHook extends EMFAnimationApi.EMFAnimationHo
             emfcompat$applyIfPresent(parts, "right_leg", model.rightLeg);
         }
 
-        if (savedPoses.leftArm() != null && (parts == null || !parts.containsKey("left_arm"))) {
-            savedPoses.leftArm().applyRotation(model.leftArm);
+        if (savedPoses != null) {
+            if (savedPoses.leftArm() != null && (parts == null || !parts.containsKey("left_arm"))) {
+                savedPoses.leftArm().applyRotation(model.leftArm);
+            }
+            if (savedPoses.rightArm() != null && (parts == null || !parts.containsKey("right_arm"))) {
+                savedPoses.rightArm().applyRotation(model.rightArm);
+            }
         }
-        if (savedPoses.rightArm() != null && (parts == null || !parts.containsKey("right_arm"))) {
-            savedPoses.rightArm().applyRotation(model.rightArm);
+
+        // The body is showing a faded value, not the raw pose applied above, and armour that does
+        // not follow it detaches for the length of the fade. Overwrite with what the body shows.
+        if (fading) {
+            PoseInterpolator.copyBlended(uuid, "head", model.head);
+            PoseInterpolator.copyBlended(uuid, "body", model.body);
+            PoseInterpolator.copyBlended(uuid, "left_arm", model.leftArm);
+            PoseInterpolator.copyBlended(uuid, "right_arm", model.rightArm);
+            PoseInterpolator.copyBlended(uuid, "left_leg", model.leftLeg);
+            PoseInterpolator.copyBlended(uuid, "right_leg", model.rightLeg);
         }
     }
 
@@ -98,17 +165,26 @@ public final class EMFCompatAnimationHook extends EMFAnimationApi.EMFAnimationHo
         if (EMFCompatCore.isLocalPlayerInFirstPerson(uuid)) return;
 
         SavedPoses savedPoses = PoseManager.getSavedPoses(uuid);
-        if (savedPoses == null) return;
+        // A player with no pose left may still have one fading back out, and that fade needs this
+        // frame — it is the one where the parts would otherwise snap into the pack's animation.
+        if (savedPoses == null && !PoseInterpolator.isActive(uuid)) return;
+        boolean smooth = PoseInterpolator.claim(uuid);
+        if (smooth) PoseInterpolator.beginFrame(EMFState.getFrameCounter());
 
         // EMF hands out its vanilla parts already keyed by name, so the pose map can be applied
         // directly instead of walking every part and parsing its printed name.
         Map<String, EMFModelPartVanilla> byName = root.getAllVanillaPartsByNameEMF();
-        Map<String, PoseSnapshot> partMap = savedPoses.parts();
+        Map<String, PoseSnapshot> partMap = savedPoses == null ? null : savedPoses.parts();
 
         if (partMap != null) {
             for (Map.Entry<String, PoseSnapshot> entry : partMap.entrySet()) {
                 EMFModelPartVanilla part = byName.get(entry.getKey());
-                if (part != null) entry.getValue().apply(part);
+                if (part == null) continue;
+                if (smooth) {
+                    PoseInterpolator.applyPart(uuid, entry.getKey(), part, entry.getValue());
+                } else {
+                    entry.getValue().apply(part);
+                }
             }
         }
 
@@ -132,19 +208,25 @@ public final class EMFCompatAnimationHook extends EMFAnimationApi.EMFAnimationHo
         // Arms: rotation absolute, position optionally offset by the body's movement since
         // capture (body-follow) when a bodyBase was supplied.
         Vector3f bodyDelta = null;
-        Vector3f bodyBase = savedPoses.bodyBase();
+        Vector3f bodyBase = savedPoses == null ? null : savedPoses.bodyBase();
         if (bodyBase != null && bodyPart != null) {
             bodyDelta = new Vector3f(bodyPart.x - bodyBase.x(), bodyPart.y - bodyBase.y(), bodyPart.z - bodyBase.z());
         }
         // Publish the delta so hand-attached objects (e.g. Carry On's carried block) can move
         // by the same amount and stay in sync with the arms.
         PoseManager.setBodyFollowDelta(uuid, bodyDelta);
-        if (!hasLeftArmInParts && savedPoses.leftArm() != null && leftArmPart != null) {
-            emfcompat$applyArm(leftArmPart, savedPoses.leftArm(), bodyDelta);
+        if (savedPoses != null) {
+            if (!hasLeftArmInParts && savedPoses.leftArm() != null && leftArmPart != null) {
+                emfcompat$applyArm(uuid, "left_arm", leftArmPart, savedPoses.leftArm(), bodyDelta, smooth);
+            }
+            if (!hasRightArmInParts && savedPoses.rightArm() != null && rightArmPart != null) {
+                emfcompat$applyArm(uuid, "right_arm", rightArmPart, savedPoses.rightArm(), bodyDelta, smooth);
+            }
         }
-        if (!hasRightArmInParts && savedPoses.rightArm() != null && rightArmPart != null) {
-            emfcompat$applyArm(rightArmPart, savedPoses.rightArm(), bodyDelta);
-        }
+
+        // Whatever a source has just let go of is faded back into the pack's animation instead of
+        // being dropped outright. Runs before the layers below are synced, so they follow it.
+        if (smooth) PoseInterpolator.fadeReleased(uuid, byName);
 
         if (headPart != null && headwearPart != null
                 && !headPart.hasChild("headwear") && !headPart.hasChild("hat")) {
@@ -167,7 +249,12 @@ public final class EMFCompatAnimationHook extends EMFAnimationApi.EMFAnimationHo
         }
     }
 
-    private static void emfcompat$applyArm(EMFModelPartVanilla part, PoseSnapshot snap, Vector3f bodyDelta) {
+    private static void emfcompat$applyArm(UUID uuid, String name, EMFModelPartVanilla part,
+                                           PoseSnapshot snap, Vector3f bodyDelta, boolean smooth) {
+        if (smooth) {
+            PoseInterpolator.applyArm(uuid, name, part, snap, bodyDelta);
+            return;
+        }
         // Rotation is always absolute. Without a body delta this is rotation-only (the arm
         // keeps EMF's position); with one, the pose position follows the moved torso.
         snap.applyRotation(part);
