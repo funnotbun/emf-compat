@@ -23,7 +23,7 @@ group = mod_group_id
 
 ext.mod_id = 'emf_compat_better_combat'
 ext.mod_name = 'EMF Compat: Better Combat'
-ext.mod_description = 'Restores Better Combat arm poses after EMF animation, so attack animations are not overwritten by Entity Model Features.'
+ext.mod_description = 'Restores Better Combat attack poses after EMF animation, so weapon swing animations are not overwritten by Entity Model Features.'
 // The root build script reads this to name the uploaded jar; on a flat module it comes
 // from gradle.properties, here it is whichever version node is being built.
 ext.minecraft_version = stonecutter.current.version
