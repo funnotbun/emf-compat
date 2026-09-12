@@ -78,7 +78,7 @@ allprojects {
             into uploadDir
 
             if (modSuffix != null && mcVersion != null && modVersion != null) {
-                rename { "emf_compat_${modSuffix}_${mcVersion}_${modVersion}.jar" }
+                rename { "emf_compat_${modSuffix}_${uploadLoader}_${mcVersion}_${modVersion}.jar" }
             }
         }
 
@@ -231,7 +231,7 @@ tasks.register('copyToAeronautics', Copy) {
 
         from(jarTask.archiveFile) {
             if (mcVersion != null && modVersion != null) {
-                rename { "emf_compat_${suffix}_${mcVersion}_${modVersion}.jar" }
+                rename { "emf_compat_${suffix}_neoforge_${mcVersion}_${modVersion}.jar" }
             }
         }
     }
