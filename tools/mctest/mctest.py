@@ -59,8 +59,11 @@ OPTION_OVERRIDES = {
     # The driver holds keys by re-asserting them every tick, which a toggle mapping would flip.
     "toggleCrouch": "false",
     "toggleSprint": "false",
-    # Command feedback and advancement spam would cover the screenshots (26.2 has no hideGui).
-    "chatVisibility": "2",
+    # Chat display off, but not "hidden": with HIDDEN the server answers every command with
+    # "Chat disabled in client options" and runs none of them. Screenshots are taken with
+    # hideGui, which covers the chat line anyway; where that is not available (26.2), start the
+    # script with "gamerule sendCommandFeedback false".
+    "chatVisibility": "1",
 }
 
 # Profile folders copied (small, the game may write them) or linked (large, read-only in practice).
@@ -127,16 +130,21 @@ def get_profile(name: str) -> Profile:
 # --------------------------------------------------------------------------------------------
 # Sandbox
 
-_OUR_JAR = re.compile(r"^(emf_compat_.+?_(?:\d+\.\d+(?:\.\d+)?))_[^_]+\.jar$")
+# Both namings are matched: the installed jar may still be emf_compat_<addon>_<mc>_<version>.jar
+# from before the loader went into the file name, while upload/ now writes the loader in.
+_OUR_JAR = re.compile(r"^emf_compat_(?P<addon>.+?)"
+                      r"(?:_(?:fabric|neoforge|forge))?"
+                      r"_(?P<mc>\d+\.\d+(?:\.\d+)?)_[^_]+\.jar$")
 
 
 def _fresh_build_of(jar_name: str, loader: str) -> Path | None:
-    """The newest jar in upload/ that is the same addon for the same Minecraft version."""
+    """The newest jar in upload/ that is the same addon for the same loader and Minecraft version."""
     m = _OUR_JAR.match(jar_name)
     if not m:
         return None
-    stem = m.group(1) + "_"
-    candidates = [p for p in (REPO / "upload").glob(f"*/{loader}/*/{stem}*.jar")]
+    addon, mc = m.group("addon"), m.group("mc")
+    candidates = [p for p in (REPO / "upload").glob(f"*/{loader}/{mc}/emf_compat_{addon}_*.jar")
+                  if p.name.startswith((f"emf_compat_{addon}_{mc}_", f"emf_compat_{addon}_{loader}_{mc}_"))]
     return max(candidates, key=lambda p: p.stat().st_mtime) if candidates else None
 
 
@@ -159,10 +167,10 @@ def _patch_options(path: Path) -> None:
 
 
 def prepare_sandbox(profile: Profile, world: str | None, use_project_jars: bool = True,
-                    fresh_world: bool = False) -> dict:
+                    fresh_world: bool = False, enable: list[str] | None = None) -> dict:
     src, dst = profile.path, profile.sandbox
     dst.mkdir(parents=True, exist_ok=True)
-    report = {"sandbox": str(dst), "swapped": [], "driver": None, "world": None}
+    report = {"sandbox": str(dst), "swapped": [], "enabled": [], "driver": None, "world": None}
 
     mods = dst / "mods"
     if mods.exists():
@@ -178,6 +186,17 @@ def prepare_sandbox(profile: Profile, world: str | None, use_project_jars: bool 
                 report["swapped"].append(f"{jar.name} -> upload/{fresh.relative_to(REPO / 'upload')}")
         else:
             (mods / jar.name).symlink_to(jar)
+    # A mod the profile keeps switched off can be switched on for one test run — the sandbox is
+    # ours, the profile keeps its .disabled file untouched.
+    for want in enable or []:
+        matches = [j for j in sorted((src / "mods").iterdir())
+                   if j.name.endswith(".disabled") and want.lower() in j.name.lower()]
+        if not matches:
+            raise SystemExit(f"profile {profile.name!r} has no disabled mod matching {want!r}")
+        for jar in matches:
+            name = jar.name[: -len(".disabled")]
+            (mods / name).symlink_to(jar)
+            report["enabled"].append(name)
     driver = _driver_jar(profile)
     if driver is not None:
         shutil.copy2(driver, mods / driver.name)
@@ -354,11 +373,12 @@ def running_pid(profile: Profile) -> int | None:
 
 
 def launch(name: str, world: str | None = None, width: int = 1280, height: int = 720,
-           use_project_jars: bool = True, fresh_world: bool = False) -> dict:
+           use_project_jars: bool = True, fresh_world: bool = False,
+           enable: list[str] | None = None) -> dict:
     profile = get_profile(name)
     if running_pid(profile):
         raise SystemExit(f"{profile.name} is already running (pid {running_pid(profile)}); stop it first")
-    report = prepare_sandbox(profile, world, use_project_jars, fresh_world)
+    report = prepare_sandbox(profile, world, use_project_jars, fresh_world, enable)
     cmd = build_command(profile, world, width, height)
     # The child keeps its own handle on the log, so the parent's can close with the block.
     with open(profile.sandbox / "mctest" / "launcher.out", "w") as log:
@@ -490,7 +510,9 @@ def _main(argv: list[str]) -> None:
             print(f"{p.name:24} {p.title:24} {p.loader:9} {p.version_id:20} {p.memory_mb}M")
     elif cmd == "launch":
         world = rest[rest.index("--world") + 1] if "--world" in rest else None
-        print(json.dumps(launch(rest[0], world, fresh_world="--fresh-world" in rest), indent=1))
+        enable = rest[rest.index("--enable") + 1].split(",") if "--enable" in rest else None
+        print(json.dumps(launch(rest[0], world, fresh_world="--fresh-world" in rest,
+                                enable=enable), indent=1))
     elif cmd == "wait":
         print(json.dumps(wait_ready(rest[0]), indent=1))
     elif cmd == "steps":

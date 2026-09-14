@@ -105,14 +105,16 @@ def mc_profiles() -> str:
 
 @mcp.tool()
 def mc_launch(profile: str, world: str | None = None, fresh_world: bool = False,
-              wait: bool = True, timeout: int = 300) -> str:
+              wait: bool = True, timeout: int = 300, enable: list[str] | None = None) -> str:
     """Rebuilds the sandbox for a profile and starts the game offline.
 
     Our emf_compat jars are replaced by the newest builds in upload/ (run the Gradle build
     first). `world` is a world of the profile, copied into the sandbox once and reused;
     `fresh_world` copies it again. With `wait`, blocks until the player is in the world.
+    `enable` names mods the profile keeps as `.disabled` (any part of the file name) and
+    switches them on for this sandbox only — the profile itself is never changed.
     """
-    report = mctest.launch(profile, world, fresh_world=fresh_world)
+    report = mctest.launch(profile, world, fresh_world=fresh_world, enable=enable)
     if wait and world:
         report["ready"] = mctest.wait_ready(profile, timeout)
     return json.dumps(report, indent=1)
@@ -136,6 +138,13 @@ def mc_steps(profile: str, steps: list[dict], crop: float = 0.45, size: int = 64
           N ticks; with "fade", each frame also records the core's fade state
       {"fade": true}  - pose sources on the player and each part's fade weight ("0.62 in/out")
       {"config": {"core.smoothPoseTransitions": false}}  - core options, in memory only
+      {"packs": ["FreshAnimations", "FA+Player"]}  - the resource packs to run with, in order
+          (later wins); everything else off. The reload happens after the script answers, so
+          make this the last step of its own call and let the next call wait for it.
+      {"model": "villager"}  or  {"model": {"entity": "player", "depth": 3}}  - the model the
+          renderer uses: each ModelPart field, what it really is, how many cubes it has left
+          and its transform. Under EMF a part a pack replaced reports cubes: 0 and keeps the
+          geometry in a custom child - that is what misplaces hats and worn items.
     Images are cropped around the player (`crop` = fraction of the frame kept, 1.0 = all)
     and, with `sheet`, laid out on one contact sheet in shooting order.
 

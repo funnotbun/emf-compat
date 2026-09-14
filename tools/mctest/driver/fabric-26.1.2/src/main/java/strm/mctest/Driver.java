@@ -11,6 +11,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.ModelPart.Cube;
+import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -21,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -230,6 +239,11 @@ public final class Driver {
                 case "state" -> result.add("state", state(mc));
                 case "config" -> config(v.getAsJsonObject());
                 case "fade" -> result.add("fade", fade(mc));
+                case "packs" -> {
+                    result.add("packs", packs(mc, v.getAsJsonArray()));
+                    return 1;
+                }
+                case "model" -> result.add("model", model(mc, v));
                 case "log" -> LOG.info("[mctest] {}", v.getAsString());
                 default -> throw new IllegalArgumentException("unknown step: " + kind);
             }
@@ -334,6 +348,255 @@ public final class Driver {
             t.addProperty("entity", String.valueOf(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getEntity().getType())));
         }
         return t;
+    }
+
+    /**
+     * Switches the resource packs on and reloads, the way the pack screen does: every pack named
+     * here is enabled in the given order (later wins), everything else is off. A name is matched
+     * against the pack ids, exactly or as a substring, so {@code "FreshAnimations"} is enough.
+     *
+     * <p>The reload runs after this returns and takes a while; the next script is only answered
+     * once the client ticks again, so a following {@code mc_steps} call is the wait.</p>
+     */
+    private static JsonArray packs(Minecraft mc, JsonArray wanted) {
+        PackRepository repo = mc.getResourcePackRepository();
+        repo.reload();
+        List<String> ids = new ArrayList<>();
+        ids.add("vanilla");
+        JsonArray chosen = new JsonArray();
+        for (JsonElement e : wanted) {
+            String name = e.getAsString();
+            String id = repo.getAvailableIds().stream()
+                    .filter(a -> a.equals(name) || a.equals("file/" + name))
+                    .findFirst()
+                    .orElseGet(() -> repo.getAvailableIds().stream()
+                            .filter(a -> a.toLowerCase(Locale.ROOT).contains(name.toLowerCase(Locale.ROOT)))
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "no pack matching " + name + " in " + repo.getAvailableIds())));
+            if (!ids.contains(id)) {
+                ids.add(id);
+            }
+            chosen.add(id);
+        }
+        repo.setSelected(ids);
+        mc.options.updateResourcePacks(repo);  // saves the selection and reloads if it changed
+        return chosen;
+    }
+
+    /**
+     * The model the renderer will use for the nearest entity of a type ({@code "player"} for the
+     * local player): every {@code ModelPart} field of the model class, with what the part actually
+     * is, how many cubes it still has and its current transform.
+     *
+     * <p>This is the probe for attachments that sit in the wrong place under a resource pack: when
+     * EMF loads a custom model, the part a mod reads stays as a container, its cubes move to a
+     * custom child, and a part the pack replaced reports {@code cubes: 0} — which is what mods that
+     * measure the model (a hat placed on top of the head cube) silently fall back from.</p>
+     */
+    private static JsonObject model(Minecraft mc, JsonElement arg) throws ReflectiveOperationException {
+        JsonObject spec = arg.isJsonObject() ? arg.getAsJsonObject() : null;
+        String wanted = spec != null ? spec.get("entity").getAsString() : arg.getAsString();
+        int depth = spec != null && spec.has("depth") ? spec.get("depth").getAsInt() : 2;
+        String only = spec != null && spec.has("part") ? spec.get("part").getAsString() : null;
+        LivingEntity entity = nearest(mc, wanted);
+        JsonObject out = new JsonObject();
+        out.addProperty("entity", String.valueOf(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType())));
+        Object renderer = mc.getEntityRenderDispatcher().getRenderer(entity);
+        out.addProperty("renderer", renderer.getClass().getName());
+        // The renderer's model, found by field TYPE rather than by name: the getter's type
+        // parameters differ per version, and a name would not survive remapping.
+        Object model = null;
+        for (Class<?> c = renderer.getClass(); c != null && model == null; c = c.getSuperclass()) {
+            for (Field f : c.getDeclaredFields()) {
+                if (EntityModel.class.isAssignableFrom(f.getType())) {
+                    f.setAccessible(true);
+                    model = f.get(renderer);
+                    break;
+                }
+            }
+        }
+        if (model == null) {
+            out.addProperty("model", "no model on this renderer");
+            return out;
+        }
+        out.addProperty("model", model.getClass().getName());
+        Object emfRoot = emfRoot(model);
+        out.addProperty("emf", emfRoot != null);
+        JsonObject parts = new JsonObject();
+        // Prefer the model's root part: its children are named by the model definition, the same
+        // on every mapping. Field names only survive where the game runs on official mappings.
+        ModelPart root = emfRoot instanceof ModelPart p ? p : rootPartOf(model);
+        if (root != null) {
+            for (Map.Entry<String, ModelPart> e : Driver.<Map<String, ModelPart>>field(root, "children", Map.of()).entrySet()) {
+                if (only == null || only.equals(e.getKey())) {
+                    parts.add(e.getKey(), part(e.getValue(), depth));
+                }
+            }
+        }
+        for (Class<?> c = model.getClass(); root == null && c != null && c != Object.class; c = c.getSuperclass()) {
+            for (Field f : c.getDeclaredFields()) {
+                String name = f.getName();
+                if (!ModelPart.class.isAssignableFrom(f.getType()) || parts.has(name)
+                        || name.startsWith("emf$") || (only != null && !only.equals(name))) {
+                    continue;
+                }
+                f.setAccessible(true);
+                Object part = f.get(model);
+                if (part != null) {
+                    parts.add(name, part((ModelPart) part, depth));
+                }
+            }
+        }
+        out.add("parts", parts);
+        return out;
+    }
+
+    /**
+     * The one {@code ModelPart} field of a model that is nobody else's descendant — the root.
+     * Null when the model keeps no root (pre-1.21.2 humanoids), which is also where field names
+     * are readable, so the caller falls back to those.
+     */
+    private static ModelPart rootPartOf(Object model) throws ReflectiveOperationException {
+        List<ModelPart> fields = new ArrayList<>();
+        for (Class<?> c = model.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+            for (Field f : c.getDeclaredFields()) {
+                if (ModelPart.class.isAssignableFrom(f.getType()) && !f.getName().startsWith("emf$")) {
+                    f.setAccessible(true);
+                    ModelPart part = (ModelPart) f.get(model);
+                    if (part != null && fields.stream().noneMatch(p -> p == part)) {
+                        fields.add(part);
+                    }
+                }
+            }
+        }
+        Set<ModelPart> descendants = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        for (ModelPart part : fields) {
+            collect(part, descendants);
+        }
+        List<ModelPart> roots = fields.stream().filter(p -> !descendants.contains(p)).toList();
+        return roots.size() == 1 ? roots.get(0) : null;
+    }
+
+    private static void collect(ModelPart part, Set<ModelPart> into) {
+        for (ModelPart child : Driver.<Map<String, ModelPart>>field(part, "children", Map.of()).values()) {
+            if (into.add(child)) {
+                collect(child, into);
+            }
+        }
+    }
+
+    /** EMF's root for this model, or null when EMF is absent or leaves the model alone. */
+    private static Object emfRoot(Object model) {
+        try {
+            if (!(Boolean) model.getClass().getMethod("emf$isEMFModel").invoke(model)) {
+                return null;
+            }
+            return model.getClass().getMethod("emf$getEMFRootModel").invoke(model);
+        } catch (ReflectiveOperationException | ClassCastException | NullPointerException e) {
+            return null;
+        }
+    }
+
+    private static JsonObject part(ModelPart part, int depth) throws ReflectiveOperationException {
+        JsonObject o = new JsonObject();
+        o.addProperty("is", part.getClass().getSimpleName());
+        List<Cube> cubes = field(part, "cubes", List.of());
+        o.addProperty("cubes", cubes.size());
+        if (!cubes.isEmpty()) {
+            // What a mod measuring the model reads: a hat goes on top of maxY - minY, and is
+            // scaled by the widest side. Gone the moment a pack replaces the part.
+            Cube first = cubes.get(0);
+            o.add("cube0", round(first.minX, first.minY, first.minZ, first.maxX, first.maxY, first.maxZ));
+        }
+        o.add("pos", round(part.x, part.y, part.z));
+        o.add("rot", round(part.xRot, part.yRot, part.zRot));
+        if (part.xScale != 1 || part.yScale != 1 || part.zScale != 1) {
+            o.add("scale", round(part.xScale, part.yScale, part.zScale));
+        }
+        if (!part.visible) {
+            o.addProperty("visible", false);
+        }
+        Map<String, ModelPart> children = field(part, "children", Map.of());
+        if (depth > 0 && !children.isEmpty()) {
+            JsonObject kids = new JsonObject();
+            for (Map.Entry<String, ModelPart> e : children.entrySet()) {
+                kids.add(e.getKey(), part(e.getValue(), depth - 1));
+            }
+            o.add("children", kids);
+        } else if (!children.isEmpty()) {
+            o.addProperty("children", String.join(", ", children.keySet()));
+        }
+        return o;
+    }
+
+    // A part's cubes and children are not reachable at compile time on every version, and their
+    // field NAMES are only readable where the game runs on official mappings — so both are found
+    // by their generic type, which names the real classes whatever the mappings are called.
+    private static final Field CUBES = partField(List.class, Cube.class);
+    private static final Field CHILDREN = partField(Map.class, ModelPart.class);
+
+    private static Field partField(Class<?> raw, Class<?> element) {
+        for (Field f : ModelPart.class.getDeclaredFields()) {
+            if (!raw.isAssignableFrom(f.getType()) || !(f.getGenericType() instanceof ParameterizedType p)) {
+                continue;
+            }
+            Type[] args = p.getActualTypeArguments();
+            if (args.length > 0 && args[args.length - 1] == element) {
+                f.setAccessible(true);
+                return f;
+            }
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T field(ModelPart part, String name, T fallback) {
+        Field f = name.equals("cubes") ? CUBES : CHILDREN;
+        if (f == null) {
+            return fallback;
+        }
+        try {
+            Object value = f.get(part);
+            return value == null ? fallback : (T) value;
+        } catch (ReflectiveOperationException e) {
+            return fallback;
+        }
+    }
+
+    private static JsonArray round(float... values) {
+        JsonArray a = new JsonArray();
+        for (float value : values) {
+            a.add(Math.round(value * 1000f) / 1000f);
+        }
+        return a;
+    }
+
+    private static LivingEntity nearest(Minecraft mc, String name) {
+        LocalPlayer player = requirePlayer(mc.player);
+        if (name.equals("player") || name.equals("self")) {
+            return player;
+        }
+        LivingEntity best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (Entity e : mc.level.entitiesForRendering()) {
+            if (!(e instanceof LivingEntity living)) {
+                continue;
+            }
+            String id = String.valueOf(BuiltInRegistries.ENTITY_TYPE.getKey(e.getType()));
+            if (!id.equals(name) && !id.endsWith(":" + name)) {
+                continue;
+            }
+            double distance = e.distanceToSqr(player);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = living;
+            }
+        }
+        if (best == null) {
+            throw new IllegalStateException("no " + name + " nearby");
+        }
+        return best;
     }
 
     // --- Probes into the EMF Compat core, by reflection so the driver never depends on it. ---

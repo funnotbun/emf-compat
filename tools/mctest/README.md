@@ -14,6 +14,7 @@ The profile is never written to. Everything happens in `run/mctest/<profile>/` (
 | `mctest.py` | The launcher: reads Modrinth's data, builds the sandbox, starts the game, talks to the driver. Also a CLI. |
 | `server.py` | MCP server over `mctest.py` — the tools `mc_*` I call. Crops screenshots and lays them out on contact sheets. |
 | `driver/<loader>-<mc>/` | The in-game mod, one module per target. A Gradle build of its own. |
+| `scenarios/*.json` | Ready-made scripts — a step list is exactly what `steps` takes. |
 | `.mcp.json` (repo root) | Registers the server for the session. |
 
 ## Using it
@@ -36,6 +37,22 @@ python3 tools/mctest/mctest.py steps Test '[{"camera":"front"},{"wait":10},{"scr
 python3 tools/mctest/mctest.py stop Test
 ```
 
+A saved scenario is just a step list, so it runs straight from the shell:
+
+```bash
+python3 tools/mctest/mctest.py steps Test "$(cat tools/mctest/scenarios/worn-items-scene.json)"
+python3 tools/mctest/mctest.py steps Test "$(cat tools/mctest/scenarios/packs-fa.json)"   # reload
+python3 tools/mctest/mctest.py steps Test "$(cat tools/mctest/scenarios/worn-items-shots.json)"
+```
+
+| Scenario | What it sets up |
+|---|---|
+| `worn-items-scene.json` | Create seats + stock tickers with a villager, a zombie and a parrot sitting on them (they get Create's logistics hat), a villager in a carved pumpkin as the vanilla reference, and Artifacts on the player. Needs `enable=["artifacts"]` at launch. |
+| | The parrot is the telling one: its head box is 2×2, so the scale Create takes from it is 0.25 and a hat that misses it comes out four times too big. A parrot never *falls onto* a seat, so the scene seats a chicken first (that is what spawns Create's seat entity), mounts the parrot onto it with `/ride`, and kills the chicken. |
+| `worn-items-scene-1.21.11.json` | The same without curios/Artifacts, with 1.21.5+ `equipment:` NBT. |
+| `worn-items-shots.json` | Camera positions, screenshots and the `model` probe for that scene. |
+| `packs-vanilla / packs-fa / packs-fa-player.json` | The three pack configurations to shoot it in. |
+
 For contact sheets and images outside MCP, import `server.py`:
 `uv run --with "mcp<2" --with pillow python -c "import sys; sys.path.insert(0,'tools/mctest'); import server; ..."`.
 
@@ -57,8 +74,23 @@ A script is a list of steps, run in order on the client thread. `wait` counts cl
 {"screenshot": "name"}          the LAST RENDERED frame
 {"fade": true}                  pose sources + each part's fade weight
 {"config": {"core.smoothPoseTransitions": false}}   core options, in memory only
+{"packs": ["FreshAnimations", "FA+Player"]}        resource packs, in order; the rest off
+{"model": "villager"} {"model": {"entity": "player", "depth": 3}}   the renderer's model tree
 {"burst": {"count": 8, "every": 1, "name": "atk", "fade": true}}   expanded by server.py
 ```
+
+The Create hat fix has its own switch, so one run can shoot both states without a reload:
+`{"config": {"create.hats": false}}` → screenshot → `{"config": {"create.hats": true}}` → screenshot.
+
+`packs` is how one run shoots the same scene with and without a pack: a name is matched against the
+pack ids exactly or as a substring, `vanilla` is always kept, and the reload starts *after* the
+script answers — so put it last in its own call and let the next call be the wait (a reload of a
+large profile takes tens of seconds; `mc_status` goes stale meanwhile, which is the signal).
+
+`model` is the probe for "the worn thing sits in the wrong place": it prints every `ModelPart` field
+of the model the renderer will use — the class it really is, how many cubes it still has, and its
+transform. Under EMF a part the pack replaced reports `cubes: 0` (the geometry moved into a custom
+child), which is what mods measuring the model fall back from.
 
 Keys: `forward back left right jump sneak sprint attack use drop swap inventory`, or any mapping by
 its translation key (`key.carry.desc`).
@@ -79,7 +111,9 @@ already downloaded is reused, so nothing is fetched.
 from `upload/` by matching `emf_compat_<addon>_<mcversion>_`. The driver jar is copied in. `config/`
 is copied, `resourcepacks/` and `shaderpacks/` linked, `options.txt` copied and patched (no pause on
 lost focus, sound off, chat hidden, no toggle crouch/sprint). One world is copied on first use;
-`fresh_world=True` copies it again. `.disabled` mods stay disabled.
+`fresh_world=True` copies it again. `.disabled` mods stay disabled, unless `enable=["artifacts"]`
+names them — then they are linked into the sandbox under their enabled name, and the profile still
+keeps its `.disabled` file.
 
 **Driving.** The driver polls `<sandbox>/mctest/inbox/*.json` every client tick, runs the steps and
 writes the answer to `outbox/`; both sides write to a temp file and rename, so half-written files are
@@ -91,6 +125,11 @@ Held keys are re-asserted every tick, because opening a screen releases every ma
 recording permission is involved. They show the frame rendered *before* the step, so leave a tick
 between changing something and shooting it. `server.py` crops around the player and, for several
 frames, builds one contact sheet — one image instead of eight.
+
+**The `model` probe** reads the model the renderer holds. It finds the model by field *type*, the
+parts by walking the root's children, and `cubes`/`children` by their generic type — names, whether
+of fields or methods, are only readable where the game runs on official mappings (NeoForge 1.21.1),
+and would be `field_3661` on Fabric and `field_78116_c` on Forge.
 
 **Core probes** (`fade`, `config`) reach the core by reflection, so the driver compiles against
 nothing of ours and works with any core version. `fade` reports the pose sources on the player and
@@ -132,5 +171,8 @@ metadata, and a copy of `Driver.java`. `mctest.py` finds it by the folder name
   ~35° down while crouching — steeper and the target cell overlaps the player, so nothing is placed.
   A click is consumed at the start of the next tick with the crosshair it had then, so turning away
   one tick after the click keeps the pickup and still gives a clean camera.
+- **Chat must not be set to "hidden".** With `chatVisibility:2` the server answers every `cmd` step
+  with "Chat disabled in client options" and runs none of them — silently, since the chat is hidden.
+  The sandbox is written with `1` (system messages only) and screenshots are taken with `hideGui`.
 - **`server.py` is a stdio server.** Running it by hand without a client just hangs waiting on stdin.
 - The game may be closed by hand at any time; `mc_steps` then answers `game exited` with a log tail.
