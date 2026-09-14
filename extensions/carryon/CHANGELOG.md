@@ -4,7 +4,7 @@
 
 - Now requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0
 - Rebuilt on EMF's animation hook instead of patching its internals, which also fixes the startup crash EMF 3.3 would have caused
-- Added a Fabric 1.21.1 build
+- Added a Fabric 1.21.1 build, and the Fabric 26.2 build is back
 
 ## 1.1.0
 
