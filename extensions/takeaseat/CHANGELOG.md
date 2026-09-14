@@ -2,8 +2,7 @@
 
 ## 2.0.0
 
-- Now requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0
-- Rebuilt on EMF's animation hooks instead of patching its internals; the sitting pose is held the same way, and your head still follows the resource pack
+- Requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0
 
 ## 1.0.1 — Forge 1.20.1
 

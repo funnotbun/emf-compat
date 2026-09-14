@@ -2,9 +2,8 @@
 
 ## 2.0.0
 
-- Now requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0
-- Rebuilt on EMF's animation hook instead of patching its internals; the horse body offset is now read once per rendered horse instead of once per model part
-- Added a Fabric 1.21.1 build. The `/hsride` tuning command is NeoForge-only for now
+- Requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0
+- Added a Fabric 1.21.1 build
 
 ## 1.0.0
 

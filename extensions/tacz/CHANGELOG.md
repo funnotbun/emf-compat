@@ -2,8 +2,8 @@
 
 ## 1.0.1
 
-- Forge 1.20.1: fixed the addon asking for Better Combat instead of TACZ, so it no longer refuses to start without a mod it never used
-- NeoForge 1.21.1: same version number, no code changes — both builds are kept on one number
+- Forge 1.20.1: the addon no longer refuses to start without Better Combat
+- NeoForge 1.21.1: no changes, same version number as Forge
 
 ## 1.0.0
 

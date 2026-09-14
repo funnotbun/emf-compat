@@ -3,7 +3,7 @@
 ## 1.0.0
 
 - First release
-- Attack, block and other action poses stay visible instead of being overwritten by your resource pack
-- The legs are held too while you stand still, so a lunge or a roll keeps its stance; moving keeps the pack's walk cycle
-- Optional weapon stances, off by default. They only apply to items the mod actually gives a stance: a lantern, food or a block no longer freezes your arms, and neither does the greatsword pose the mod hands a fishing rod
-- Head and body keep their resource-pack animations while you fight
+- Attack, block, roll and other action poses stay visible over your resource pack
+- Your stance holds while you stand still; walking keeps the pack's animation
+- Optional weapon stances (off by default), only for weapons that have one
+- Head and body keep your pack's animation while you fight

@@ -3,11 +3,10 @@
 ## 2.1.0
 
 - Requires EMF Compat Core 2.2.0
-- Skyhook no longer freezes the player's animation on Fabric. The hang pose is now captured and put back after EMF runs, instead of pausing EMF and swapping in the vanilla model, so faces keep animating and the resource pack's model is still used while hanging
-- Skyhook poses are dropped as soon as a player lets go, instead of waiting for the periodic sweep
-- Added a Forge 1.20.1 build, covering Create's skyhook, Create Stuff 'N Additions and the Not Enough Animations item-swap fix. Aeronautics, Grappling Hooks, Cosmonautics and Sable Ragdolls have no 1.20.1 release
-- Added support for Barehanded on 1.21.1: the arms keep holding a grabbed structure in third person instead of being animated over by the resource pack
-- Fixed the engineer's and logistics hat being misplaced while a resource pack such as Fresh Animations is on: it slid down to the neck on players and villagers, and on animals it hung in the air beside them, oversized. The hat sits on top of the head again, at the size and place it has without the pack. Setting: "Hats on mobs"
+- Skyhook on Fabric no longer freezes your character: faces and your resource pack keep working while you hang
+- Fixed Create's engineer and logistics hat under Fresh Animations: it sits on the mob's head again instead of sinking to the neck or floating beside animals. Setting: "Hats on mobs"
+- Added support for Barehanded on 1.21.1
+- Added a Forge 1.20.1 build with Skyhook, hats and Create Stuff 'N Additions
 
 ## 2.0.0
 
