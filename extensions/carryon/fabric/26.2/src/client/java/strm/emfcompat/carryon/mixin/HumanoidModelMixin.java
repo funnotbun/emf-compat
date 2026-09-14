@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import strm.emfcompat.carryon.CarryOnRenderState;
 import strm.emfcompat.carryon.compat.CarryOnCompat;
 import strm.emfcompat.core.BodyPartSync;
 import strm.emfcompat.core.PoseManager;

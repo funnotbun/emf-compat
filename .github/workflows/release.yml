@@ -1,7 +1,12 @@
 name: Release
 
-# Сборка всех артифаков и публикация GitHub Release.
-# Запуск: пуш тега v* (например v1.0.2).
+# Сборка всех артефактов и черновик GitHub Release.
+# Запуск: пуш тега v* (например v1.0.2) или вручную с указанием тега.
+#
+# Релиз создаётся ЧЕРНОВИКОМ: файлы приложены, но наружу ничего не уходит,
+# пока ты сам не нажмёшь Publish. Чтобы публиковать сразу — draft: false ниже.
+# Загрузку на Modrinth/CurseForge здесь намеренно не делаем: это отдельный
+# внешний шаг с токенами, и решение публиковать остаётся ручным.
 
 on:
   push:
@@ -12,14 +17,20 @@ on:
         description: 'Тег релиза (например v1.0.2)'
         required: true
 
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK 25, 21 and 17
         uses: actions/setup-java@v4
         with:
@@ -39,17 +50,36 @@ jobs:
         id: meta
         run: echo "tag=${{ github.event.inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
 
-      # См. build.yml — core сначала, иначе Loom падает.
+      # См. build.yml — core сначала, иначе Loom падает на конфигурации расширений.
       - name: Build core modules first
-        run: ./gradlew :core-fabric-1.21.11:build :core-fabric-26.1.2:build :core-fabric-26.2:build :core-forge-1.20.1:build :core-neoforge-1.21.1:build --configure-on-demand --stacktrace
+        run: >
+          ./gradlew
+          :core-forge-1.20.1:build
+          :core-neoforge-1.21.1:build
+          :core-fabric-1.21.1:build
+          :core-fabric-1.21.11:build
+          :core-fabric-26.1.2:build
+          :core-fabric-26.2:build
+          --configure-on-demand --stacktrace
 
       - name: Build all modules
         run: ./gradlew build --stacktrace
 
-      - name: Create GitHub Release
+      # Список файлов с размерами и SHA-256 — прикладывается к релизу и виден в логе.
+      - name: Checksums
+        run: |
+          cd upload
+          find . -name '*.jar' -print0 | sort -z | xargs -0 sha256sum > ../checksums.txt
+          cat ../checksums.txt
+
+      - name: Create draft GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.meta.outputs.tag }}
           name: EMF Compat ${{ steps.meta.outputs.tag }}
           generate_release_notes: true
-          files: upload/**/*.jar
+          draft: true
+          fail_on_unmatched_files: true
+          files: |
+            upload/**/*.jar
+            checksums.txt

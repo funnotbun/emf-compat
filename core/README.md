@@ -31,15 +31,19 @@ The EMF Compat addons fix that, one mod at a time. This core is the shared piece
 
 When another mod poses your character, the addon takes a snapshot of that pose and the core puts it back after EMF has animated the model — so you see the mod's pose instead of the resource-pack one. Armour follows the same pose, so it stays on your body.
 
+When a mod takes a limb or lets it go, the pose blends into the pack's animation over about a fifth of a second instead of snapping in one frame. The core also fixes crouching while a mod animates the player — the model no longer sinks into the ground or hops up with every attack from a crouch — and keeps the pack animating while another mod plays an animation through Player Animation Library, where EMF would otherwise freeze the whole model.
+
 Only the parts a mod actually needs are taken over. Everything else keeps its resource-pack animation, so your character still breathes, walks and idles normally while holding a gun or carrying a chest. When two mods want the same limb at once, the more specific one wins — for example an attack takes the arms while a riding pose keeps the legs.
 
 ## Settings
 
 All addons share one settings screen, with a tab per addon: **Mods → EMF Compat Core → Config**.
 
-The first tab, **Core**, has one option:
+The first tab, **Core**, has these options:
 
 - **EMF compatibility** — the global switch. Turn it off and every installed addon stops working at once: the game looks exactly as if only EMF and your resource pack were installed. No restart needed, and each addon keeps its own settings for when you turn it back on.
+- **Smooth pose transitions** — blends poses in and out instead of switching in one frame.
+- **Crouch fix** — keeps the crouch height right while a mod animates the player.
 
 Most addons offer:
 
@@ -50,7 +54,7 @@ Addons that cover several mods (Create, Gliders) add a toggle per supported mod,
 
 ## Dependencies
 
-- **[Entity Model Features](https://modrinth.com/mod/entity-model-features)** 3.2.4+
+- **[Entity Model Features](https://modrinth.com/mod/entity-model-features)** 3.3.2+
 - **[Entity Texture Features](https://modrinth.com/mod/entitytexturefeatures)** (required by EMF)
 - A player animation resource pack, such as **[Fresh Animations: Player Extension](https://modrinth.com/resourcepack/fa-player-extension)**
 
@@ -60,7 +64,7 @@ Addons that cover several mods (Create, Gliders) add a toggle per supported mod,
 |--------|-------------------|
 | NeoForge | 1.21.1 |
 | Forge | 1.20.1 |
-| Fabric | 1.21.11, 26.1.2, 26.2 |
+| Fabric | 1.21.1, 1.21.11, 26.1.2, 26.2 |
 
 Addon coverage varies per loader — check each addon's page.
 
@@ -69,6 +73,7 @@ Addon coverage varies per loader — check each addon's page.
 ```bash
 ./gradlew :core-neoforge-1.21.1:build
 ./gradlew :core-forge-1.20.1:build
+./gradlew :core-fabric-1.21.1:build
 ./gradlew :core-fabric-1.21.11:build
 ./gradlew :core-fabric-26.1.2:build
 ./gradlew :core-fabric-26.2:build

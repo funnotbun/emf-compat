@@ -1,12 +1,24 @@
 name: Build
 
-# Проверка сборки всех модулей на каждый push/PR в main.
+# Сборка всех модулей: на push в main/dev, на каждый PR туда же и по кнопке.
+# Ветки feat/** проверяются через PR — гонять полную сборку на каждый пуш в них дорого.
+#
+# Сюда же входит verifyMixinConfigs: он часть задачи check и падает, если в готовом
+# jar'е нет миксин-конфига или классов из него (так мы однажды выпустили сломанный NEA).
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
+    paths-ignore: ['**.md', 'tools/**', '.gitignore', '.mcp.json']
   pull_request:
-    branches: [main]
+    branches: [main, dev]
+    paths-ignore: ['**.md', 'tools/**', '.gitignore', '.mcp.json']
+  workflow_dispatch:
+
+# Новый пуш в ту же ветку отменяет предыдущий прогон.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -14,6 +26,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
@@ -37,8 +50,17 @@ jobs:
       # Loom читает jar'ы core-модулей ещё на этапе конфигурации расширений,
       # поэтому core собираем первыми отдельным вызовом (configure-on-demand
       # не конфигурирует расширения и не падает об отсутствующие jar'ы).
+      # Список — все модули ядра из settings.gradle; при добавлении нового впиши его сюда.
       - name: Build core modules first
-        run: ./gradlew :core-fabric-1.21.11:build :core-fabric-26.1.2:build :core-fabric-26.2:build :core-forge-1.20.1:build :core-neoforge-1.21.1:build --configure-on-demand --stacktrace
+        run: >
+          ./gradlew
+          :core-forge-1.20.1:build
+          :core-neoforge-1.21.1:build
+          :core-fabric-1.21.1:build
+          :core-fabric-1.21.11:build
+          :core-fabric-26.1.2:build
+          :core-fabric-26.2:build
+          --configure-on-demand --stacktrace
 
       - name: Build all modules
         run: ./gradlew build --stacktrace
@@ -46,7 +68,7 @@ jobs:
       - name: Upload built jars
         uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-${{ github.sha }}
           path: upload/**/*.jar
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14

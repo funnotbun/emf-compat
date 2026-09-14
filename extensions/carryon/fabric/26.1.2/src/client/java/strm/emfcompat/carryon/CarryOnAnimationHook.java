@@ -1,5 +1,7 @@
 package strm.emfcompat.carryon;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import strm.emfcompat.core.BodyPartSync;
 import traben.entity_model_features.EMFAnimationApi;
 import traben.entity_model_features.models.animation.state.EMFEntityRenderState;
@@ -21,6 +23,8 @@ import java.util.UUID;
  */
 public final class CarryOnAnimationHook extends EMFAnimationApi.EMFAnimationHook {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("emf_compat");
+
     private CarryOnAnimationHook() {
     }
 
@@ -28,7 +32,7 @@ public final class CarryOnAnimationHook extends EMFAnimationApi.EMFAnimationHook
         try {
             EMFAnimationApi.registerAnimationHook(new CarryOnAnimationHook());
         } catch (Throwable t) {
-            System.err.println("[EMF Compat: Carry On] could not register the EMF animation hook: " + t);
+            LOGGER.warn("[EMF Compat: Carry On] could not register the EMF animation hook", t);
         }
     }
 

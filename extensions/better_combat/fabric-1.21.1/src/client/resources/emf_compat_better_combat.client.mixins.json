@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "strm.emfcompat.bettercombat.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "PlayerModelMixin",
+    "GenericPlayerAnimMixin",
+    "PlayerRendererMixin",
+    "AttackAnimationSubStackMixin",
+    "BetterCombatOneHandedSlamMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

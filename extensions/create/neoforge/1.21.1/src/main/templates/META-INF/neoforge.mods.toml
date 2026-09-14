@@ -32,7 +32,7 @@ side="CLIENT"
 [[dependencies.${mod_id}]]
 modId="emf_compat_core"
 type="required"
-versionRange="[2.0.0,)"
+versionRange="[2.1.0,)"
 ordering="AFTER"
 side="CLIENT"
 
@@ -61,5 +61,12 @@ side="CLIENT"
 modId="create_sa"
 type="optional"
 versionRange="*"
+ordering="AFTER"
+side="CLIENT"
+
+[[dependencies.${mod_id}]]
+modId="barehanded"
+type="optional"
+versionRange="[1.6.6,)"
 ordering="AFTER"
 side="CLIENT"

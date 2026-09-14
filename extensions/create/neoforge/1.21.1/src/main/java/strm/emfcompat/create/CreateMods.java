@@ -15,6 +15,8 @@ public final class CreateMods {
             has("com/addon/gancho/AddonGanchoNet.class");
     public static final boolean RAGDOLL =
             has("dev/leo/sableplayerragdoll/neoforge/client/RagdollGrabState.class");
+    public static final boolean BAREHANDED =
+            has("dev/juaanp/barehanded/api/BarehandedAPI.class");
     public static final boolean NEA =
             has("dev/tr7zw/notenoughanimations/animations/hands/ItemSwapAnimation.class");
     public static final boolean COSMONAUTICS = ModList.get().isLoaded("rocketnautics");

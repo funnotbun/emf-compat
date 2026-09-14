@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "strm.emfcompat.carryon.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "HumanoidModelMixin",
+    "PlayerRendererMixin",
+    "CarryRenderHelperMixin",
+    "CarriedObjectRenderMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

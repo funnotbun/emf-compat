@@ -1,5 +1,13 @@
 # EMF Compat: Create — Changelog
 
+## 2.1.0
+
+- Requires EMF Compat Core 2.2.0
+- Skyhook on Fabric no longer freezes your character: faces and your resource pack keep working while you hang
+- Fixed Create's engineer and logistics hat under Fresh Animations: it sits on the mob's head again instead of sinking to the neck or floating beside animals. Setting: "Hats on mobs"
+- Added support for Barehanded on 1.21.1
+- Added a Forge 1.20.1 build with Skyhook, hats and Create Stuff 'N Additions
+
 ## 2.0.0
 
 - Now requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0

@@ -32,6 +32,27 @@ public class PoseSnapshot {
         this.rotationOnly = rotationOnly;
     }
 
+    /**
+     * Copies a part's whole transform onto another, without going through a snapshot.
+     *
+     * <p>For the layers that must sit exactly on the part they belong to — sleeves, trousers, hat,
+     * jacket. The restore path does this six times per player per frame, which is the one place
+     * where a throwaway snapshot per part was worth removing.</p>
+     */
+    public static void copy(ModelPart from, ModelPart to) {
+        to.xRot = from.xRot;
+        to.yRot = from.yRot;
+        to.zRot = from.zRot;
+        to.x = from.x;
+        to.y = from.y;
+        to.z = from.z;
+        to.xScale = from.xScale;
+        to.yScale = from.yScale;
+        to.zScale = from.zScale;
+        to.visible = from.visible;
+        to.skipDraw = from.skipDraw;
+    }
+
     public void apply(ModelPart part) {
         part.xRot = this.xRot;
         part.yRot = this.yRot;

@@ -1,0 +1,55 @@
+// Per-Minecraft-version data for the Better Combat Fabric branch.
+//
+// This is the file that replaced three near-identical gradle.properties. Everything the three
+// targets actually disagree about lives here in one table; everything they agree about lives in
+// the buildscripts next to it. Applied by both build.remap.gradle and build.plain.gradle, which
+// index it with stonecutter.current.version.
+//
+// Note the split that forces two buildscripts rather than one: 1.21.11 is still an obfuscated
+// release and needs net.fabricmc.fabric-loom-remap plus a mappings line, while 26.x ships
+// deobfuscated and uses plain net.fabricmc.fabric-loom with no mappings at all. A plugins {}
+// block cannot choose its plugin id at evaluation time, so that difference cannot be expressed
+// with an if.
+
+ext.mcVersions = [
+        '1.21.11': [
+                loader_version: '0.19.2',
+                fabric_version: '0.141.4+1.21.11',
+                core          : ':core-fabric-1.21.11',
+                java          : 21,
+                emf           : 'maven.modrinth:entity-model-features:3.3.2-fabric-1.21.11',
+                etf           : 'maven.modrinth:entitytexturefeatures:7.2.1-fabric-1.21.11',
+                betterCombat  : 'maven.modrinth:better-combat:FxYUDqeX', // 3.0.1+1.21.11-fabric
+                pal           : 'com.zigythebird.playeranim:PlayerAnimationLibFabric:1.1.7+mc.1.21.11',
+        ],
+        '26.1.2' : [
+                loader_version: '0.19.2',
+                fabric_version: '0.148.2+26.1.2',
+                core          : ':core-fabric-26.1.2',
+                java          : 25,
+                // EMF and ETF classify their 26.1.x artefacts as "26.1", not "26.1.2".
+                emf           : 'maven.modrinth:entity-model-features:3.3.2-fabric-26.1',
+                etf           : 'maven.modrinth:entitytexturefeatures:7.2.1-fabric-26.1',
+                betterCombat  : 'maven.modrinth:better-combat:1UMcSrDb',
+                pal           : 'com.zigythebird.playeranim:PlayerAnimationLibFabric:1.2.5+mc.26.1',
+        ],
+        '26.2'   : [
+                loader_version: '0.19.2',
+                fabric_version: '0.152.1+26.2',
+                core          : ':core-fabric-26.2',
+                java          : 25,
+                emf           : 'maven.modrinth:entity-model-features:3.3.2-fabric-26.2',
+                etf           : 'maven.modrinth:entitytexturefeatures:7.2.1-fabric-26.2',
+                betterCombat  : 'maven.modrinth:better-combat:enlZuzkJ',
+                pal           : 'com.zigythebird.playeranim:PlayerAnimationLibFabric:1.2.5+mc.26.2',
+        ],
+]
+
+ext.mc = { ->
+    def v = stonecutter.current.version
+    def data = ext.mcVersions[v]
+    if (data == null) {
+        throw new GradleException("No entry in versions.gradle for Minecraft ${v}")
+    }
+    data
+}

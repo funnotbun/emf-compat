@@ -66,6 +66,11 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
+// The core has a mixin again (EMFAnimationPauseHandlerMixin), so this block is back. It had to go
+// while the core had none: it registers a refmap with reobf, which makes reobfJar demand
+// build/mixin/emf_compat_core.refmap.json.mappings.tsrg, and the Mixin annotation processor only
+// writes that file when it has at least one mixin to process. Remove the last mixin and this
+// block has to go with it, or a clean build fails with FileNotFoundException.
 mixin {
     add sourceSets.main, 'emf_compat_core.refmap.json'
     config 'emf_compat_core.mixins.json'

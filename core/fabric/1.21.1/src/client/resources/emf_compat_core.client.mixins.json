@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "strm.emfcompat.core.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "EMFAnimationPauseHandlerMixin",
+    "SetupRotationsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

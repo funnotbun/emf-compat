@@ -1,0 +1,92 @@
+name: Publish to Modrinth
+
+# Только ручной запуск. По умолчанию — прогон вхолостую: скрипт печатает, что ушло бы, и ничего
+# не отправляет. Реальная выгрузка требует явно выбрать mode=upload; токен берётся из секрета
+# MODRINTH_TOKEN и в логах не появляется.
+#
+# Версия, уже опубликованная с той же парой «загрузчик + версия игры» и тем же номером,
+# пропускается, поэтому повторный запуск не создаёт дублей.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'dry-run (ничего не отправлять) или upload (публиковать)'
+        type: choice
+        options: [dry-run, upload]
+        default: dry-run
+      only:
+        description: 'Один аддон, например core (пусто — все)'
+        required: false
+      loader:
+        description: 'forge / neoforge / fabric (пусто — все)'
+        required: false
+      mc:
+        description: 'Версия игры, например 1.21.1 (пусто — все)'
+        required: false
+
+concurrency:
+  group: publish-modrinth
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25, 21 and 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            17
+            21
+            25
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make installed JDKs visible to Gradle toolchains
+        run: echo "org.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64,JAVA_HOME_25_X64" >> ~/.gradle/gradle.properties
+
+      # См. build.yml — core сначала, иначе Loom падает на конфигурации расширений.
+      - name: Build core modules first
+        run: >
+          ./gradlew
+          :core-forge-1.20.1:build
+          :core-neoforge-1.21.1:build
+          :core-fabric-1.21.1:build
+          :core-fabric-1.21.11:build
+          :core-fabric-26.1.2:build
+          :core-fabric-26.2:build
+          --configure-on-demand --stacktrace
+
+      # Публикуется то, что собрано здесь же из этого коммита, а не то, что лежало у кого-то локально.
+      - name: Build all modules
+        run: ./gradlew build --stacktrace
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Dry run
+        run: >
+          python3 tools/publish/publish.py
+          ${{ inputs.only && format('--only {0}', inputs.only) || '' }}
+          ${{ inputs.loader && format('--loader {0}', inputs.loader) || '' }}
+          ${{ inputs.mc && format('--mc {0}', inputs.mc) || '' }}
+
+      - name: Upload
+        if: inputs.mode == 'upload'
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: >
+          python3 tools/publish/publish.py --upload
+          ${{ inputs.only && format('--only {0}', inputs.only) || '' }}
+          ${{ inputs.loader && format('--loader {0}', inputs.loader) || '' }}
+          ${{ inputs.mc && format('--mc {0}', inputs.mc) || '' }}

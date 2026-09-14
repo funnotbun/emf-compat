@@ -1,5 +1,11 @@
 # EMF Compat: Iron's Spells 'n Spellbooks — Changelog
 
+## 2.1.0
+
+- Requires EMF Compat Core 2.2.0
+- Turning the addon off in the settings now fully turns it off
+- Added a Forge 1.20.1 build
+
 ## 2.0.0
 
 - Now requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0

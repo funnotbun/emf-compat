@@ -4,7 +4,6 @@
   "package": "strm.emfcompat.takeaseat.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "EMFModelPartRootMixin",
     "ArmorFeatureRendererMixin",
     "HumanoidModelMixin",
     "AvatarRendererMixin"

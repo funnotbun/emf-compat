@@ -48,6 +48,7 @@ Open the in-game config screen (Mods → EMF Compat Core → Config) and pick th
 | Loader | Minecraft versions |
 |--------|-------------------|
 | NeoForge | 1.21.1 |
+| Forge | 1.20.1 |
 
 ## Build
 

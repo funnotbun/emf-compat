@@ -1,0 +1,1924 @@
+{
+ "version_type": "release",
+ "notes": "Хосты — optional, EMF и ядро — required, ETF не указываем. publish=false у бета-аддонов.",
+ "projects": {
+  "core": {
+   "slug": "emf-compat-core",
+   "id": "hbGct5uU",
+   "publish": true
+  },
+  "better_combat": {
+   "slug": "emf-compat-better-combat",
+   "id": "Smytm33T",
+   "publish": true
+  },
+  "carry_on": {
+   "slug": "emf-compat-carry-on",
+   "id": "BPD5ZhBo",
+   "publish": true
+  },
+  "create": {
+   "slug": "create-emf-compat-skyhook",
+   "id": "J9McOdzy",
+   "publish": true
+  },
+  "exposure": {
+   "slug": "emf-compat-exposure",
+   "id": "mHqWFw6Z",
+   "publish": true
+  },
+  "gliders": {
+   "slug": "emf-compat-gliders",
+   "id": "PsGWhwc8",
+   "publish": true
+  },
+  "immersive_melodies": {
+   "slug": "emf-compat-immersive-melodies",
+   "id": "XLUpeCri",
+   "publish": true
+  },
+  "iron_spells": {
+   "slug": "emf-compat-irons-spells-n-spellbooks",
+   "id": "rk0DMjc3",
+   "publish": true
+  },
+  "not_enough_animations": {
+   "slug": "not-enough-animations-emf-compat",
+   "id": "IGCrWfL7",
+   "publish": true
+  },
+  "quark": {
+   "slug": "emf-compat-quark",
+   "id": "UvuFGp0l",
+   "publish": true
+  },
+  "supplementaries": {
+   "slug": "emf-compat-supplementaries",
+   "id": "z4FSlBqI",
+   "publish": true
+  },
+  "tacz": {
+   "slug": "emf-compat-tacz",
+   "id": "vPnbqVkb",
+   "publish": true
+  },
+  "takeaseat": {
+   "slug": "emf-compat-take-a-seat",
+   "id": "npIU8sEo",
+   "publish": true
+  },
+  "watut": {
+   "slug": "emf-compat-watut",
+   "id": "PIxeWxJ0",
+   "publish": true
+  },
+  "hackers_and_slashers": {
+   "slug": null,
+   "id": null,
+   "publish": false
+  },
+  "horse_sync": {
+   "slug": null,
+   "id": null,
+   "publish": false
+  },
+  "parcool": {
+   "slug": null,
+   "id": null,
+   "publish": false
+  }
+ },
+ "modules": [
+  {
+   "addon": "better_combat",
+   "loader": "fabric",
+   "game_version": "1.21.1",
+   "version_number": "2.1.0",
+   "project": "emf-compat-better-combat",
+   "project_id": "Smytm33T",
+   "publish": true,
+   "file": "upload/Better Combat/fabric/1.21.1/emf_compat_better_combat_fabric_1.21.1_2.1.0.jar",
+   "changelog": "extensions/better_combat/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "better-combat",
+     "project_id": "5sy6g3kz",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Better Combat",
+   "name": "EMF Compat: Better Combat 2.1.0"
+  },
+  {
+   "addon": "better_combat",
+   "loader": "fabric",
+   "game_version": "1.21.11",
+   "version_number": "2.1.0",
+   "project": "emf-compat-better-combat",
+   "project_id": "Smytm33T",
+   "publish": true,
+   "file": "upload/Better Combat/fabric/1.21.11/emf_compat_better_combat_fabric_1.21.11_2.1.0.jar",
+   "changelog": "extensions/better_combat/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "better-combat",
+     "project_id": "5sy6g3kz",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Better Combat",
+   "name": "EMF Compat: Better Combat 2.1.0"
+  },
+  {
+   "addon": "better_combat",
+   "loader": "fabric",
+   "game_version": "26.1.2",
+   "version_number": "2.1.0",
+   "project": "emf-compat-better-combat",
+   "project_id": "Smytm33T",
+   "publish": true,
+   "file": "upload/Better Combat/fabric/26.1.2/emf_compat_better_combat_fabric_26.1.2_2.1.0.jar",
+   "changelog": "extensions/better_combat/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "better-combat",
+     "project_id": "5sy6g3kz",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Better Combat",
+   "name": "EMF Compat: Better Combat 2.1.0"
+  },
+  {
+   "addon": "better_combat",
+   "loader": "fabric",
+   "game_version": "26.2",
+   "version_number": "2.1.0",
+   "project": "emf-compat-better-combat",
+   "project_id": "Smytm33T",
+   "publish": true,
+   "file": "upload/Better Combat/fabric/26.2/emf_compat_better_combat_fabric_26.2_2.1.0.jar",
+   "changelog": "extensions/better_combat/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "better-combat",
+     "project_id": "5sy6g3kz",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Better Combat",
+   "name": "EMF Compat: Better Combat 2.1.0"
+  },
+  {
+   "addon": "better_combat",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "2.1.0",
+   "project": "emf-compat-better-combat",
+   "project_id": "Smytm33T",
+   "publish": true,
+   "file": "upload/Better Combat/forge/1.20.1/emf_compat_better_combat_forge_1.20.1_2.1.0.jar",
+   "changelog": "extensions/better_combat/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "better-combat",
+     "project_id": "5sy6g3kz",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Better Combat",
+   "name": "EMF Compat: Better Combat 2.1.0"
+  },
+  {
+   "addon": "better_combat",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "2.1.0",
+   "project": "emf-compat-better-combat",
+   "project_id": "Smytm33T",
+   "publish": true,
+   "file": "upload/Better Combat/neoforge/1.21.1/emf_compat_better_combat_neoforge_1.21.1_2.1.0.jar",
+   "changelog": "extensions/better_combat/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "better-combat",
+     "project_id": "5sy6g3kz",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Better Combat",
+   "name": "EMF Compat: Better Combat 2.1.0"
+  },
+  {
+   "addon": "carry_on",
+   "loader": "fabric",
+   "game_version": "1.21.1",
+   "version_number": "2.0.0",
+   "project": "emf-compat-carry-on",
+   "project_id": "BPD5ZhBo",
+   "publish": true,
+   "file": "upload/Carry On/fabric/1.21.1/emf_compat_carry_on_fabric_1.21.1_2.0.0.jar",
+   "changelog": "extensions/carryon/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "carry-on",
+     "project_id": "joEfVgkn",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Carry On",
+   "name": "EMF Compat: Carry On 2.0.0"
+  },
+  {
+   "addon": "carry_on",
+   "loader": "fabric",
+   "game_version": "1.21.11",
+   "version_number": "2.0.0",
+   "project": "emf-compat-carry-on",
+   "project_id": "BPD5ZhBo",
+   "publish": true,
+   "file": "upload/Carry On/fabric/1.21.11/emf_compat_carry_on_fabric_1.21.11_2.0.0.jar",
+   "changelog": "extensions/carryon/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "carry-on",
+     "project_id": "joEfVgkn",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Carry On",
+   "name": "EMF Compat: Carry On 2.0.0"
+  },
+  {
+   "addon": "carry_on",
+   "loader": "fabric",
+   "game_version": "26.1.2",
+   "version_number": "2.0.0",
+   "project": "emf-compat-carry-on",
+   "project_id": "BPD5ZhBo",
+   "publish": true,
+   "file": "upload/Carry On/fabric/26.1.2/emf_compat_carry_on_fabric_26.1.2_2.0.0.jar",
+   "changelog": "extensions/carryon/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "carry-on",
+     "project_id": "joEfVgkn",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Carry On",
+   "name": "EMF Compat: Carry On 2.0.0"
+  },
+  {
+   "addon": "carry_on",
+   "loader": "fabric",
+   "game_version": "26.2",
+   "version_number": "2.0.0",
+   "project": "emf-compat-carry-on",
+   "project_id": "BPD5ZhBo",
+   "publish": true,
+   "file": "upload/Carry On/fabric/26.2/emf_compat_carry_on_fabric_26.2_2.0.0.jar",
+   "changelog": "extensions/carryon/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "carry-on",
+     "project_id": "joEfVgkn",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Carry On",
+   "name": "EMF Compat: Carry On 2.0.0"
+  },
+  {
+   "addon": "carry_on",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "2.0.0",
+   "project": "emf-compat-carry-on",
+   "project_id": "BPD5ZhBo",
+   "publish": true,
+   "file": "upload/Carry On/forge/1.20.1/emf_compat_carry_on_forge_1.20.1_2.0.0.jar",
+   "changelog": "extensions/carryon/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "carry-on",
+     "project_id": "joEfVgkn",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Carry On",
+   "name": "EMF Compat: Carry On 2.0.0"
+  },
+  {
+   "addon": "carry_on",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "2.0.0",
+   "project": "emf-compat-carry-on",
+   "project_id": "BPD5ZhBo",
+   "publish": true,
+   "file": "upload/Carry On/neoforge/1.21.1/emf_compat_carry_on_neoforge_1.21.1_2.0.0.jar",
+   "changelog": "extensions/carryon/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "carry-on",
+     "project_id": "joEfVgkn",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Carry On",
+   "name": "EMF Compat: Carry On 2.0.0"
+  },
+  {
+   "addon": "core",
+   "loader": "fabric",
+   "game_version": "1.21.1",
+   "version_number": "2.2.0",
+   "project": "emf-compat-core",
+   "project_id": "hbGct5uU",
+   "publish": true,
+   "file": "upload/Core/fabric/1.21.1/emf_compat_core_fabric_1.21.1_2.2.0.jar",
+   "changelog": "core/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    }
+   ],
+   "display": "Core",
+   "name": "EMF Compat: Core 2.2.0"
+  },
+  {
+   "addon": "core",
+   "loader": "fabric",
+   "game_version": "1.21.11",
+   "version_number": "2.2.0",
+   "project": "emf-compat-core",
+   "project_id": "hbGct5uU",
+   "publish": true,
+   "file": "upload/Core/fabric/1.21.11/emf_compat_core_fabric_1.21.11_2.2.0.jar",
+   "changelog": "core/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    }
+   ],
+   "display": "Core",
+   "name": "EMF Compat: Core 2.2.0"
+  },
+  {
+   "addon": "core",
+   "loader": "fabric",
+   "game_version": "26.1.2",
+   "version_number": "2.2.0",
+   "project": "emf-compat-core",
+   "project_id": "hbGct5uU",
+   "publish": true,
+   "file": "upload/Core/fabric/26.1.2/emf_compat_core_fabric_26.1.2_2.2.0.jar",
+   "changelog": "core/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    }
+   ],
+   "display": "Core",
+   "name": "EMF Compat: Core 2.2.0"
+  },
+  {
+   "addon": "core",
+   "loader": "fabric",
+   "game_version": "26.2",
+   "version_number": "2.2.0",
+   "project": "emf-compat-core",
+   "project_id": "hbGct5uU",
+   "publish": true,
+   "file": "upload/Core/fabric/26.2/emf_compat_core_fabric_26.2_2.2.0.jar",
+   "changelog": "core/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    }
+   ],
+   "display": "Core",
+   "name": "EMF Compat: Core 2.2.0"
+  },
+  {
+   "addon": "core",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "2.2.0",
+   "project": "emf-compat-core",
+   "project_id": "hbGct5uU",
+   "publish": true,
+   "file": "upload/Core/forge/1.20.1/emf_compat_core_forge_1.20.1_2.2.0.jar",
+   "changelog": "core/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    }
+   ],
+   "display": "Core",
+   "name": "EMF Compat: Core 2.2.0"
+  },
+  {
+   "addon": "core",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "2.2.0",
+   "project": "emf-compat-core",
+   "project_id": "hbGct5uU",
+   "publish": true,
+   "file": "upload/Core/neoforge/1.21.1/emf_compat_core_neoforge_1.21.1_2.2.0.jar",
+   "changelog": "core/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    }
+   ],
+   "display": "Core",
+   "name": "EMF Compat: Core 2.2.0"
+  },
+  {
+   "addon": "create",
+   "loader": "fabric",
+   "game_version": "1.21.11",
+   "version_number": "2.1.0",
+   "project": "create-emf-compat-skyhook",
+   "project_id": "J9McOdzy",
+   "publish": true,
+   "file": "upload/Create/fabric/1.21.11/emf_compat_create_fabric_1.21.11_2.1.0.jar",
+   "changelog": "extensions/create/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "create-fly",
+     "project_id": "dKvj0eNn",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "not-enough-animations",
+     "project_id": "MPCX6s5C",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Create",
+   "name": "EMF Compat: Create 2.1.0"
+  },
+  {
+   "addon": "create",
+   "loader": "fabric",
+   "game_version": "26.1.2",
+   "version_number": "2.1.0",
+   "project": "create-emf-compat-skyhook",
+   "project_id": "J9McOdzy",
+   "publish": true,
+   "file": "upload/Create/fabric/26.1.2/emf_compat_create_fabric_26.1.2_2.1.0.jar",
+   "changelog": "extensions/create/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "create-fly",
+     "project_id": "dKvj0eNn",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "not-enough-animations",
+     "project_id": "MPCX6s5C",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Create",
+   "name": "EMF Compat: Create 2.1.0"
+  },
+  {
+   "addon": "create",
+   "loader": "fabric",
+   "game_version": "26.2",
+   "version_number": "2.1.0",
+   "project": "create-emf-compat-skyhook",
+   "project_id": "J9McOdzy",
+   "publish": true,
+   "file": "upload/Create/fabric/26.2/emf_compat_create_fabric_26.2_2.1.0.jar",
+   "changelog": "extensions/create/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "create-fly",
+     "project_id": "dKvj0eNn",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "not-enough-animations",
+     "project_id": "MPCX6s5C",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Create",
+   "name": "EMF Compat: Create 2.1.0"
+  },
+  {
+   "addon": "create",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "2.1.0",
+   "project": "create-emf-compat-skyhook",
+   "project_id": "J9McOdzy",
+   "publish": true,
+   "file": "upload/Create/forge/1.20.1/emf_compat_create_forge_1.20.1_2.1.0.jar",
+   "changelog": "extensions/create/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "create",
+     "project_id": "LNytGWDc",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "create-stuff-additions",
+     "project_id": "aq9qUUQG",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "not-enough-animations",
+     "project_id": "MPCX6s5C",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Create",
+   "name": "EMF Compat: Create 2.1.0"
+  },
+  {
+   "addon": "create",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "2.1.0",
+   "project": "create-emf-compat-skyhook",
+   "project_id": "J9McOdzy",
+   "publish": true,
+   "file": "upload/Create/neoforge/1.21.1/emf_compat_create_neoforge_1.21.1_2.1.0.jar",
+   "changelog": "extensions/create/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "barehanded",
+     "project_id": "NnSJuVRa",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "create",
+     "project_id": "LNytGWDc",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "create-aeronautics",
+     "project_id": "oWaK0Q19",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "create-cosmonatics",
+     "project_id": "micg1iTH",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "create-grappling-hooks",
+     "project_id": "zxlsvyWp",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "not-enough-animations",
+     "project_id": "MPCX6s5C",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "sable-ragdolls",
+     "project_id": "I3mWDgfy",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Create",
+   "name": "EMF Compat: Create 2.1.0"
+  },
+  {
+   "addon": "exposure",
+   "loader": "fabric",
+   "game_version": "1.21.1",
+   "version_number": "1.0.0",
+   "project": "emf-compat-exposure",
+   "project_id": "mHqWFw6Z",
+   "publish": true,
+   "file": "upload/Exposure/fabric/1.21.1/emf_compat_exposure_fabric_1.21.1_1.0.0.jar",
+   "changelog": "extensions/exposure/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "exposure",
+     "project_id": "hB899VmG",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Exposure",
+   "name": "EMF Compat: Exposure 1.0.0"
+  },
+  {
+   "addon": "exposure",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "1.0.0",
+   "project": "emf-compat-exposure",
+   "project_id": "mHqWFw6Z",
+   "publish": true,
+   "file": "upload/Exposure/forge/1.20.1/emf_compat_exposure_forge_1.20.1_1.0.0.jar",
+   "changelog": "extensions/exposure/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "exposure",
+     "project_id": "hB899VmG",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Exposure",
+   "name": "EMF Compat: Exposure 1.0.0"
+  },
+  {
+   "addon": "exposure",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "1.0.0",
+   "project": "emf-compat-exposure",
+   "project_id": "mHqWFw6Z",
+   "publish": true,
+   "file": "upload/Exposure/neoforge/1.21.1/emf_compat_exposure_neoforge_1.21.1_1.0.0.jar",
+   "changelog": "extensions/exposure/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "exposure",
+     "project_id": "hB899VmG",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Exposure",
+   "name": "EMF Compat: Exposure 1.0.0"
+  },
+  {
+   "addon": "gliders",
+   "loader": "fabric",
+   "game_version": "1.21.1",
+   "version_number": "2.0.0",
+   "project": "emf-compat-gliders",
+   "project_id": "PsGWhwc8",
+   "publish": true,
+   "file": "upload/Gliders/fabric/1.21.1/emf_compat_gliders_fabric_1.21.1_2.0.0.jar",
+   "changelog": "extensions/gliders/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "gliders",
+     "project_id": "XiC6HzoU",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "reliable-gliders",
+     "project_id": "pVIWsXir",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Gliders",
+   "name": "EMF Compat: Gliders 2.0.0"
+  },
+  {
+   "addon": "gliders",
+   "loader": "fabric",
+   "game_version": "26.1.2",
+   "version_number": "2.0.0",
+   "project": "emf-compat-gliders",
+   "project_id": "PsGWhwc8",
+   "publish": true,
+   "file": "upload/Gliders/fabric/26.1.2/emf_compat_gliders_fabric_26.1.2_2.0.0.jar",
+   "changelog": "extensions/gliders/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "reliable-gliders",
+     "project_id": "pVIWsXir",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Gliders",
+   "name": "EMF Compat: Gliders 2.0.0"
+  },
+  {
+   "addon": "gliders",
+   "loader": "fabric",
+   "game_version": "26.2",
+   "version_number": "2.0.0",
+   "project": "emf-compat-gliders",
+   "project_id": "PsGWhwc8",
+   "publish": true,
+   "file": "upload/Gliders/fabric/26.2/emf_compat_gliders_fabric_26.2_2.0.0.jar",
+   "changelog": "extensions/gliders/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "reliable-gliders",
+     "project_id": "pVIWsXir",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Gliders",
+   "name": "EMF Compat: Gliders 2.0.0"
+  },
+  {
+   "addon": "gliders",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "2.0.0",
+   "project": "emf-compat-gliders",
+   "project_id": "PsGWhwc8",
+   "publish": true,
+   "file": "upload/Gliders/forge/1.20.1/emf_compat_gliders_forge_1.20.1_2.0.0.jar",
+   "changelog": "extensions/gliders/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "gliders",
+     "project_id": "XiC6HzoU",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "paragliders",
+     "project_id": "esqWA0aQ",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Gliders",
+   "name": "EMF Compat: Gliders 2.0.0"
+  },
+  {
+   "addon": "gliders",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "2.0.0",
+   "project": "emf-compat-gliders",
+   "project_id": "PsGWhwc8",
+   "publish": true,
+   "file": "upload/Gliders/neoforge/1.21.1/emf_compat_gliders_neoforge_1.21.1_2.0.0.jar",
+   "changelog": "extensions/gliders/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "gliders",
+     "project_id": "XiC6HzoU",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "paragliders",
+     "project_id": "esqWA0aQ",
+     "dependency_type": "optional"
+    },
+    {
+     "slug": "reliable-gliders",
+     "project_id": "pVIWsXir",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Gliders",
+   "name": "EMF Compat: Gliders 2.0.0"
+  },
+  {
+   "addon": "hackers_and_slashers",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "1.0.0",
+   "project": null,
+   "project_id": null,
+   "publish": false,
+   "file": "upload/Hackers 'n Slashers/neoforge/1.21.1/emf_compat_hackers_and_slashers_neoforge_1.21.1_1.0.0.jar",
+   "changelog": "extensions/hackers_and_slashers/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    }
+   ],
+   "display": "Hackers 'n Slashers",
+   "name": "EMF Compat: Hackers 'n Slashers 1.0.0"
+  },
+  {
+   "addon": "horse_sync",
+   "loader": "fabric",
+   "game_version": "1.21.1",
+   "version_number": "2.0.0",
+   "project": null,
+   "project_id": null,
+   "publish": false,
+   "file": "upload/Horse Sync/fabric/1.21.1/emf_compat_horse_sync_fabric_1.21.1_2.0.0.jar",
+   "changelog": "extensions/horse-sync/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    }
+   ],
+   "display": "Horse Sync",
+   "name": "EMF Compat: Horse Sync 2.0.0"
+  },
+  {
+   "addon": "horse_sync",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "2.0.0",
+   "project": null,
+   "project_id": null,
+   "publish": false,
+   "file": "upload/Horse Sync/neoforge/1.21.1/emf_compat_horse_sync_neoforge_1.21.1_2.0.0.jar",
+   "changelog": "extensions/horse-sync/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    }
+   ],
+   "display": "Horse Sync",
+   "name": "EMF Compat: Horse Sync 2.0.0"
+  },
+  {
+   "addon": "immersive_melodies",
+   "loader": "fabric",
+   "game_version": "1.21.1",
+   "version_number": "1.1.0",
+   "project": "emf-compat-immersive-melodies",
+   "project_id": "XLUpeCri",
+   "publish": true,
+   "file": "upload/Immersive Melodies/fabric/1.21.1/emf_compat_immersive_melodies_fabric_1.21.1_1.1.0.jar",
+   "changelog": "extensions/immersive_melodies/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "immersive-melodies",
+     "project_id": "TaSmHw8V",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Immersive Melodies",
+   "name": "EMF Compat: Immersive Melodies 1.1.0"
+  },
+  {
+   "addon": "immersive_melodies",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "1.1.0",
+   "project": "emf-compat-immersive-melodies",
+   "project_id": "XLUpeCri",
+   "publish": true,
+   "file": "upload/Immersive Melodies/forge/1.20.1/emf_compat_immersive_melodies_forge_1.20.1_1.1.0.jar",
+   "changelog": "extensions/immersive_melodies/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "immersive-melodies",
+     "project_id": "TaSmHw8V",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Immersive Melodies",
+   "name": "EMF Compat: Immersive Melodies 1.1.0"
+  },
+  {
+   "addon": "immersive_melodies",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "1.1.0",
+   "project": "emf-compat-immersive-melodies",
+   "project_id": "XLUpeCri",
+   "publish": true,
+   "file": "upload/Immersive Melodies/neoforge/1.21.1/emf_compat_immersive_melodies_neoforge_1.21.1_1.1.0.jar",
+   "changelog": "extensions/immersive_melodies/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "immersive-melodies",
+     "project_id": "TaSmHw8V",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Immersive Melodies",
+   "name": "EMF Compat: Immersive Melodies 1.1.0"
+  },
+  {
+   "addon": "iron_spells",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "2.1.0",
+   "project": "emf-compat-irons-spells-n-spellbooks",
+   "project_id": "rk0DMjc3",
+   "publish": true,
+   "file": "upload/Iron's Spells/forge/1.20.1/emf_compat_iron_spells_forge_1.20.1_2.1.0.jar",
+   "changelog": "extensions/iron_spells/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "irons-spells-n-spellbooks",
+     "project_id": "s4OWxYQQ",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Iron's Spells",
+   "name": "EMF Compat: Iron's Spells 2.1.0"
+  },
+  {
+   "addon": "iron_spells",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "2.1.0",
+   "project": "emf-compat-irons-spells-n-spellbooks",
+   "project_id": "rk0DMjc3",
+   "publish": true,
+   "file": "upload/Iron's Spells/neoforge/1.21.1/emf_compat_iron_spells_neoforge_1.21.1_2.1.0.jar",
+   "changelog": "extensions/iron_spells/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "irons-spells-n-spellbooks",
+     "project_id": "s4OWxYQQ",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Iron's Spells",
+   "name": "EMF Compat: Iron's Spells 2.1.0"
+  },
+  {
+   "addon": "not_enough_animations",
+   "loader": "fabric",
+   "game_version": "1.21.1",
+   "version_number": "1.2.0",
+   "project": "not-enough-animations-emf-compat",
+   "project_id": "IGCrWfL7",
+   "publish": true,
+   "file": "upload/Not Enough Animations/fabric/1.21.1/emf_compat_not_enough_animations_fabric_1.21.1_1.2.0.jar",
+   "changelog": "extensions/nea/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "not-enough-animations",
+     "project_id": "MPCX6s5C",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Not Enough Animations",
+   "name": "EMF Compat: Not Enough Animations 1.2.0"
+  },
+  {
+   "addon": "not_enough_animations",
+   "loader": "fabric",
+   "game_version": "1.21.11",
+   "version_number": "1.2.0",
+   "project": "not-enough-animations-emf-compat",
+   "project_id": "IGCrWfL7",
+   "publish": true,
+   "file": "upload/Not Enough Animations/fabric/1.21.11/emf_compat_not_enough_animations_fabric_1.21.11_1.2.0.jar",
+   "changelog": "extensions/nea/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "not-enough-animations",
+     "project_id": "MPCX6s5C",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Not Enough Animations",
+   "name": "EMF Compat: Not Enough Animations 1.2.0"
+  },
+  {
+   "addon": "not_enough_animations",
+   "loader": "fabric",
+   "game_version": "26.1.2",
+   "version_number": "1.2.0",
+   "project": "not-enough-animations-emf-compat",
+   "project_id": "IGCrWfL7",
+   "publish": true,
+   "file": "upload/Not Enough Animations/fabric/26.1.2/emf_compat_not_enough_animations_fabric_26.1.2_1.2.0.jar",
+   "changelog": "extensions/nea/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "not-enough-animations",
+     "project_id": "MPCX6s5C",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Not Enough Animations",
+   "name": "EMF Compat: Not Enough Animations 1.2.0"
+  },
+  {
+   "addon": "not_enough_animations",
+   "loader": "fabric",
+   "game_version": "26.2",
+   "version_number": "1.2.0",
+   "project": "not-enough-animations-emf-compat",
+   "project_id": "IGCrWfL7",
+   "publish": true,
+   "file": "upload/Not Enough Animations/fabric/26.2/emf_compat_not_enough_animations_fabric_26.2_1.2.0.jar",
+   "changelog": "extensions/nea/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "not-enough-animations",
+     "project_id": "MPCX6s5C",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Not Enough Animations",
+   "name": "EMF Compat: Not Enough Animations 1.2.0"
+  },
+  {
+   "addon": "not_enough_animations",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "1.2.0",
+   "project": "not-enough-animations-emf-compat",
+   "project_id": "IGCrWfL7",
+   "publish": true,
+   "file": "upload/Not Enough Animations/forge/1.20.1/emf_compat_not_enough_animations_forge_1.20.1_1.2.0.jar",
+   "changelog": "extensions/nea/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "not-enough-animations",
+     "project_id": "MPCX6s5C",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Not Enough Animations",
+   "name": "EMF Compat: Not Enough Animations 1.2.0"
+  },
+  {
+   "addon": "not_enough_animations",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "1.2.0",
+   "project": "not-enough-animations-emf-compat",
+   "project_id": "IGCrWfL7",
+   "publish": true,
+   "file": "upload/Not Enough Animations/neoforge/1.21.1/emf_compat_not_enough_animations_neoforge_1.21.1_1.2.0.jar",
+   "changelog": "extensions/nea/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "not-enough-animations",
+     "project_id": "MPCX6s5C",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Not Enough Animations",
+   "name": "EMF Compat: Not Enough Animations 1.2.0"
+  },
+  {
+   "addon": "parcool",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "1.0.0",
+   "project": null,
+   "project_id": null,
+   "publish": false,
+   "file": "upload/ParCool/neoforge/1.21.1/emf_compat_parcool_neoforge_1.21.1_1.0.0.jar",
+   "changelog": "extensions/parcool/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "parcool",
+     "project_id": "Fsvx2bdR",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "ParCool",
+   "name": "EMF Compat: ParCool 1.0.0"
+  },
+  {
+   "addon": "quark",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "1.1.0",
+   "project": "emf-compat-quark",
+   "project_id": "UvuFGp0l",
+   "publish": true,
+   "file": "upload/Quark/forge/1.20.1/emf_compat_quark_forge_1.20.1_1.1.0.jar",
+   "changelog": "extensions/quark/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "quark",
+     "project_id": "qnQsVE2z",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Quark",
+   "name": "EMF Compat: Quark 1.1.0"
+  },
+  {
+   "addon": "quark",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "1.1.0",
+   "project": "emf-compat-quark",
+   "project_id": "UvuFGp0l",
+   "publish": true,
+   "file": "upload/Quark/neoforge/1.21.1/emf_compat_quark_neoforge_1.21.1_1.1.0.jar",
+   "changelog": "extensions/quark/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "quark",
+     "project_id": "qnQsVE2z",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Quark",
+   "name": "EMF Compat: Quark 1.1.0"
+  },
+  {
+   "addon": "supplementaries",
+   "loader": "fabric",
+   "game_version": "1.21.1",
+   "version_number": "1.1.0",
+   "project": "emf-compat-supplementaries",
+   "project_id": "z4FSlBqI",
+   "publish": true,
+   "file": "upload/Supplementaries/fabric/1.21.1/emf_compat_supplementaries_fabric_1.21.1_1.1.0.jar",
+   "changelog": "extensions/supplementaries/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "supplementaries",
+     "project_id": "fFEIiSDQ",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Supplementaries",
+   "name": "EMF Compat: Supplementaries 1.1.0"
+  },
+  {
+   "addon": "supplementaries",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "1.1.0",
+   "project": "emf-compat-supplementaries",
+   "project_id": "z4FSlBqI",
+   "publish": true,
+   "file": "upload/Supplementaries/forge/1.20.1/emf_compat_supplementaries_forge_1.20.1_1.1.0.jar",
+   "changelog": "extensions/supplementaries/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "supplementaries",
+     "project_id": "fFEIiSDQ",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Supplementaries",
+   "name": "EMF Compat: Supplementaries 1.1.0"
+  },
+  {
+   "addon": "supplementaries",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "1.1.0",
+   "project": "emf-compat-supplementaries",
+   "project_id": "z4FSlBqI",
+   "publish": true,
+   "file": "upload/Supplementaries/neoforge/1.21.1/emf_compat_supplementaries_neoforge_1.21.1_1.1.0.jar",
+   "changelog": "extensions/supplementaries/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "supplementaries",
+     "project_id": "fFEIiSDQ",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Supplementaries",
+   "name": "EMF Compat: Supplementaries 1.1.0"
+  },
+  {
+   "addon": "tacz",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "1.0.1",
+   "project": "emf-compat-tacz",
+   "project_id": "vPnbqVkb",
+   "publish": true,
+   "file": "upload/TACZ/forge/1.20.1/emf_compat_tacz_forge_1.20.1_1.0.1.jar",
+   "changelog": "extensions/tacz/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "timeless-and-classics-zero",
+     "project_id": "SzzJttH8",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "TACZ",
+   "name": "EMF Compat: TACZ 1.0.1"
+  },
+  {
+   "addon": "tacz",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "1.0.1",
+   "project": "emf-compat-tacz",
+   "project_id": "vPnbqVkb",
+   "publish": true,
+   "file": "upload/TACZ/neoforge/1.21.1/emf_compat_tacz_neoforge_1.21.1_1.0.1.jar",
+   "changelog": "extensions/tacz/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "tacz-1.21.1",
+     "project_id": "OypNE65K",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "TACZ",
+   "name": "EMF Compat: TACZ 1.0.1"
+  },
+  {
+   "addon": "takeaseat",
+   "loader": "fabric",
+   "game_version": "1.21.11",
+   "version_number": "2.0.0",
+   "project": "emf-compat-take-a-seat",
+   "project_id": "npIU8sEo",
+   "publish": true,
+   "file": "upload/Take a Seat/fabric/1.21.11/emf_compat_takeaseat_fabric_1.21.11_2.0.0.jar",
+   "changelog": "extensions/takeaseat/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "tas",
+     "project_id": "Gg7qMzxE",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Take a Seat",
+   "name": "EMF Compat: Take a Seat 2.0.0"
+  },
+  {
+   "addon": "takeaseat",
+   "loader": "fabric",
+   "game_version": "26.1.2",
+   "version_number": "2.0.0",
+   "project": "emf-compat-take-a-seat",
+   "project_id": "npIU8sEo",
+   "publish": true,
+   "file": "upload/Take a Seat/fabric/26.1.2/emf_compat_takeaseat_fabric_26.1.2_2.0.0.jar",
+   "changelog": "extensions/takeaseat/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "tas",
+     "project_id": "Gg7qMzxE",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Take a Seat",
+   "name": "EMF Compat: Take a Seat 2.0.0"
+  },
+  {
+   "addon": "takeaseat",
+   "loader": "fabric",
+   "game_version": "26.2",
+   "version_number": "2.0.0",
+   "project": "emf-compat-take-a-seat",
+   "project_id": "npIU8sEo",
+   "publish": true,
+   "file": "upload/Take a Seat/fabric/26.2/emf_compat_takeaseat_fabric_26.2_2.0.0.jar",
+   "changelog": "extensions/takeaseat/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "tas",
+     "project_id": "Gg7qMzxE",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Take a Seat",
+   "name": "EMF Compat: Take a Seat 2.0.0"
+  },
+  {
+   "addon": "takeaseat",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "2.0.0",
+   "project": "emf-compat-take-a-seat",
+   "project_id": "npIU8sEo",
+   "publish": true,
+   "file": "upload/Take a Seat/forge/1.20.1/emf_compat_takeaseat_forge_1.20.1_2.0.0.jar",
+   "changelog": "extensions/takeaseat/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "sitting+",
+     "project_id": "RVtIOlYX",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Take a Seat",
+   "name": "EMF Compat: Take a Seat 2.0.0"
+  },
+  {
+   "addon": "takeaseat",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "2.0.0",
+   "project": "emf-compat-take-a-seat",
+   "project_id": "npIU8sEo",
+   "publish": true,
+   "file": "upload/Take a Seat/neoforge/1.21.1/emf_compat_takeaseat_neoforge_1.21.1_2.0.0.jar",
+   "changelog": "extensions/takeaseat/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "tas",
+     "project_id": "Gg7qMzxE",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "Take a Seat",
+   "name": "EMF Compat: Take a Seat 2.0.0"
+  },
+  {
+   "addon": "watut",
+   "loader": "fabric",
+   "game_version": "1.21.1",
+   "version_number": "1.0.0",
+   "project": "emf-compat-watut",
+   "project_id": "PIxeWxJ0",
+   "publish": true,
+   "file": "upload/WATUT/fabric/1.21.1/emf_compat_watut_fabric_1.21.1_1.0.0.jar",
+   "changelog": "extensions/watut/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "what-are-they-up-to",
+     "project_id": "AtB5mHky",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "WATUT",
+   "name": "EMF Compat: WATUT 1.0.0"
+  },
+  {
+   "addon": "watut",
+   "loader": "forge",
+   "game_version": "1.20.1",
+   "version_number": "1.0.0",
+   "project": "emf-compat-watut",
+   "project_id": "PIxeWxJ0",
+   "publish": true,
+   "file": "upload/WATUT/forge/1.20.1/emf_compat_watut_forge_1.20.1_1.0.0.jar",
+   "changelog": "extensions/watut/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "what-are-they-up-to",
+     "project_id": "AtB5mHky",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "WATUT",
+   "name": "EMF Compat: WATUT 1.0.0"
+  },
+  {
+   "addon": "watut",
+   "loader": "neoforge",
+   "game_version": "1.21.1",
+   "version_number": "1.0.0",
+   "project": "emf-compat-watut",
+   "project_id": "PIxeWxJ0",
+   "publish": true,
+   "file": "upload/WATUT/neoforge/1.21.1/emf_compat_watut_neoforge_1.21.1_1.0.0.jar",
+   "changelog": "extensions/watut/CHANGELOG.md",
+   "dependencies": [
+    {
+     "slug": "entity-model-features",
+     "project_id": "4I1XuqiY",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "emf-compat-core",
+     "project_id": "hbGct5uU",
+     "dependency_type": "required"
+    },
+    {
+     "slug": "what-are-they-up-to",
+     "project_id": "AtB5mHky",
+     "dependency_type": "optional"
+    }
+   ],
+   "display": "WATUT",
+   "name": "EMF Compat: WATUT 1.0.0"
+  }
+ ],
+ "featured": false
+}

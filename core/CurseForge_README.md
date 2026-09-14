@@ -14,6 +14,10 @@ When another mod plays its own player animation — such as Create's Skyhook, Be
 - Lets addon animations show correctly on animated EMF player models.
 - Handles pose capture and restore behind the scenes.
 - Keeps first-person and third-person poses consistent.
+- Poses blend smoothly into your resource pack's animation instead of snapping to it in one frame. Armour follows the blend.
+- Fixes crouching while a mod animates the player — no more sinking into the ground or jumping up with every attack from a crouch.
+- Keeps your pack animating while another mod plays an animation through Player Animation Library, instead of freezing the whole model.
+- One settings screen for every addon (Mods → EMF Compat Core → Config), with switches for smoothing and the crouch fix.
 
 ## Projects
 

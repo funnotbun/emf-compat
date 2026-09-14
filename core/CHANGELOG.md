@@ -1,5 +1,12 @@
 # EMF Compat Core — Changelog
 
+## 2.2.0
+
+- Your pack keeps animating while another mod plays a Player Animation Library animation — sitting, carrying or playing an instrument no longer freezes the model
+- Poses now blend smoothly into your pack's animation instead of snapping. Setting: "Smooth pose transitions"
+- Fixed crouching while a mod animates you: no more sinking into the ground or hopping up on every attack. Setting: "Crouch fix"
+- Added a Fabric 1.21.1 build
+
 ## 2.0.0
 
 - Now requires Entity Model Features 3.3.2 or newer

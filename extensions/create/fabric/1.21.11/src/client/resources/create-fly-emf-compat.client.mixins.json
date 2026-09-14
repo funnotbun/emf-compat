@@ -6,7 +6,10 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "PlayerSkyhookRendererAccessor",
-    "ItemSwapAnimationMixin"
+    "ItemSwapAnimationMixin",
+    "PlayerModelSkyhookMixin",
+    "PlayerSkyhookRendererUpdateMixin",
+    "HatFeatureRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

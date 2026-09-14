@@ -56,6 +56,10 @@ remappedSrc/
 loom-cache/
 .architectury-transformer/
 
+# Stonecutter: version nodes and their processed sources are generated from src/
+versions/
+stonecutter-cache/
+
 # Mod build outputs
 upload/
 *.jar
@@ -74,3 +78,6 @@ documentation.md
 
 # Local EMF / ETF pre-release jars, never ours to redistribute.
 libs/*.jar
+
+# Python
+__pycache__/

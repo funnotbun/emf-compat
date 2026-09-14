@@ -4,8 +4,10 @@ import com.takeaseat.client.TakeASeatClient;
 import com.zigythebird.playeranim.api.PlayerAnimationAccess;
 import com.zigythebird.playeranimcore.animation.layered.IAnimation;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.entity.Entity;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.world.entity.Entity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import strm.emfcompat.core.PoseManager;
 import strm.emfcompat.core.PoseSnapshot;
 import strm.emfcompat.core.SavedPoses;
@@ -30,6 +32,8 @@ import java.util.Map;
  */
 public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHook {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("emf_compat");
+
     private static final String POSE_SOURCE = "takeaseat";
 
     private static final ThreadLocal<Map<EMFModelPartVanilla, PoseSnapshot>> SNAPSHOTS =
@@ -42,7 +46,7 @@ public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHo
         try {
             EMFAnimationApi.registerAnimationHook(new TakeASeatAnimationHook());
         } catch (Throwable t) {
-            System.err.println("[EMF Compat: Take a Seat] could not register the EMF animation hook: " + t);
+            LOGGER.warn("[EMF Compat: Take a Seat] could not register the EMF animation hook", t);
         }
     }
 
@@ -57,7 +61,7 @@ public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHo
         EMFEntityRenderState state = context.activeState();
         if (state == null || state.isFirstPersonHand()) return true;
         if (!(state.emfEntity() instanceof Entity entity)) return true;
-        if (!(entity instanceof AbstractClientPlayerEntity player)) return true;
+        if (!(entity instanceof AbstractClientPlayer player)) return true;
 
         IAnimation layer;
         try {
@@ -66,7 +70,7 @@ public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHo
             return true;
         }
         if (layer == null || !layer.isActive()) {
-            PoseManager.clearPoses(player.getUuid(), POSE_SOURCE);
+            PoseManager.clearPoses(player.getUUID(), POSE_SOURCE);
             return true;
         }
 
@@ -85,7 +89,7 @@ public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHo
 
         if (!savedParts.isEmpty()) {
             PoseManager.savePoses(
-                    player.getUuid(),
+                    player.getUUID(),
                     POSE_SOURCE,
                     new SavedPoses(null, null, savedParts),
                     false

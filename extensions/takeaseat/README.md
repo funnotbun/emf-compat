@@ -43,16 +43,17 @@ On Fabric, armour can sit slightly loose on the body while you move or crouch, s
 ## Dependencies
 
 - [Take a Seat](https://modrinth.com/mod/take-a-seat) 1.0.1+
-- [Entity Model Features](https://modrinth.com/mod/entity-model-features) 3.2.4+
+- [Entity Model Features](https://modrinth.com/mod/entity-model-features) 3.3.2+
 - [Entity Texture Features](https://modrinth.com/mod/entitytexturefeatures) (required by EMF)
 - [Player Animation Library](https://modrinth.com/mod/player-animation-library) (required by Take a Seat)
-- EMF Compat Core 1.0.1+
+- EMF Compat Core 2.0.0+
 
 ## Supported loaders / versions
 
 | Loader | Minecraft versions |
 |--------|-------------------|
 | NeoForge | 1.21.1 |
+| Forge | 1.20.1 |
 | Fabric | 1.21.11, 26.1.2, 26.2 |
 
 ## Build

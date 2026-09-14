@@ -1,5 +1,10 @@
 # EMF Compat: Better Combat — Changelog
 
+## 2.1.0
+
+- Requires EMF Compat Core 2.2.0
+- Added a Fabric 1.21.1 build
+
 ## 2.0.0
 
 - Now requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0

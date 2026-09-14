@@ -19,7 +19,16 @@ public class EMFCompatCoreMod {
                         "On", "Every installed addon works as configured in its own tab.",
                         "Off", "Turn off every EMF compatibility addon at once — the game behaves "
                                 + "as if only EMF and your resource pack were installed. "
-                                + "Applies immediately, no restart needed.");
+                                + "Applies immediately, no restart needed.")
+                .addBoolean(PoseInterpolator.KEY_ENABLED, "Smooth pose transitions", true,
+                        "On", "Blend between a mod's pose and your resource pack's animation when "
+                                + "one starts, ends or changes, instead of switching in one frame.",
+                        "Off", "Switch straight to the pose, as before.")
+                .addBoolean(CrouchNormalizer.KEY_ENABLED, "Crouch fix", true,
+                        "On", "Keep a crouching player at the right height while a mod animates them. "
+                                + "Without it the model can sink into the ground or drop lower than "
+                                + "the crouch, and jump up and down with every attack.",
+                        "Off", "Leave the crouch to the mods' animations and your resource pack.");
         if (FMLEnvironment.dist == Dist.CLIENT) {
             // EMF calls this back once per entity render, right after the pack animation.
             EMFCompatAnimationHook.register();

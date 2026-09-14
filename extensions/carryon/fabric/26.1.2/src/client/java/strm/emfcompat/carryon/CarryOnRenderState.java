@@ -6,7 +6,6 @@ import traben.entity_model_features.EMFAnimationApi;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 

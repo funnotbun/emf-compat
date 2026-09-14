@@ -4,3 +4,4 @@
 
 - Added a config tab with an arm sync option
 - Flute, slingshot and bubble blower poses now follow your moving body
+- Added a Fabric 1.21.1 build

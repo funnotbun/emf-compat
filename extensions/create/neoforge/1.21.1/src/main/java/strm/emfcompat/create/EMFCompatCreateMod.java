@@ -18,7 +18,9 @@ public class EMFCompatCreateMod {
     public static final String KEY_RAGDOLL = "create.ragdoll";
     public static final String KEY_COSMONAUTICS = "create.cosmonautics";
     public static final String KEY_CREATE_SA = "create.createSa";
+    public static final String KEY_BAREHANDED = "create.barehanded";
     public static final String KEY_NEA_ITEMSWAP = "create.neaItemSwap";
+    public static final String KEY_HATS = "create.hats";
 
     public EMFCompatCreateMod(IEventBus modEventBus) {
         registerConfig();
@@ -36,7 +38,10 @@ public class EMFCompatCreateMod {
                         "Captured arm poses keep only their rotation.")
                 .addBoolean(KEY_SKYHOOK, "Skyhook", true,
                         "On", "Keep Create's skyhook hang pose while EMF is active (capture & restore).",
-                        "Off", "Leave skyhook to EMF (resource-pack animations keep playing).");
+                        "Off", "Leave skyhook to EMF (resource-pack animations keep playing).")
+                .addBoolean(KEY_HATS, "Hats on mobs", true,
+                        "On", "Place the engineer's and logistics hat on top of the head under a resource pack's model.",
+                        "Off", "Leave the hat where Create puts it (it sinks to the neck under Fresh Animations).");
         // Per-add-on toggles, shown only when the add-on is present.
         if (CreateMods.AERONAUTICS) {
             section.addBoolean(KEY_AERONAUTICS, "Aeronautics handle", true,
@@ -62,6 +67,11 @@ public class EMFCompatCreateMod {
             section.addBoolean(KEY_CREATE_SA, "Stuff 'N Additions", true,
                     "On", "Jetpack flight animation + arm poses for the whisk and block picker.",
                     "Off", "Leave Stuff 'N Additions to EMF.");
+        }
+        if (CreateMods.BAREHANDED) {
+            section.addBoolean(KEY_BAREHANDED, "Barehanded", true,
+                    "On", "Keep the bare-handed grab pose in third person while the pack keeps animating.",
+                    "Off", "Leave the grab pose to EMF.");
         }
         if (CreateMods.NEA) {
             section.addBoolean(KEY_NEA_ITEMSWAP, "NEA item-swap fix", true,
@@ -104,7 +114,15 @@ public class EMFCompatCreateMod {
         return EMFCompatConfig.getBoolean(KEY_CREATE_SA, true);
     }
 
+    public static boolean isBarehanded() {
+        return EMFCompatConfig.getBoolean(KEY_BAREHANDED, true);
+    }
+
     public static boolean isNeaItemSwap() {
         return EMFCompatConfig.getBoolean(KEY_NEA_ITEMSWAP, true);
+    }
+
+    public static boolean isHats() {
+        return EMFCompatConfig.getBoolean(KEY_HATS, true);
     }
 }

@@ -4,6 +4,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import strm.emfcompat.horsesync.compat.EMFCompat;
 import strm.emfcompat.horsesync.mixin.AbstractHorseRendererAccessor;
 import traben.entity_model_features.EMFAnimationApi;
@@ -24,6 +26,8 @@ import java.util.stream.StreamSupport;
  */
 public final class HorseSyncAnimationHook extends EMFAnimationApi.EMFAnimationHook {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("emf_compat");
+
     private static int cleanupCounter = 0;
 
     private HorseSyncAnimationHook() {
@@ -33,7 +37,7 @@ public final class HorseSyncAnimationHook extends EMFAnimationApi.EMFAnimationHo
         try {
             EMFAnimationApi.registerAnimationHook(new HorseSyncAnimationHook());
         } catch (Throwable t) {
-            System.err.println("[EMF Compat: Horse Sync] could not register the EMF animation hook: " + t);
+            LOGGER.warn("[EMF Compat: Horse Sync] could not register the EMF animation hook", t);
         }
     }
 
