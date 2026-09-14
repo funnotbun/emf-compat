@@ -17,6 +17,7 @@
     "FlightAnimationDetectionMixin",
     "FlightEMFManagerResetMixin",
     "CreateSaItemPoseMixin",
-    "BarehandedGrabPoseMixin"
+    "BarehandedGrabPoseMixin",
+    "CreateHatArmorLayerMixin"
   ]
 }

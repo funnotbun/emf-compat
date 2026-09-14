@@ -9,7 +9,8 @@
     "PlayerSkyhookRendererAccessor",
     "PlayerSkyhookRendererMixin",
     "ItemSwapAnimationMixin",
-    "CreateSaItemPoseMixin"
+    "CreateSaItemPoseMixin",
+    "CreateHatArmorLayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

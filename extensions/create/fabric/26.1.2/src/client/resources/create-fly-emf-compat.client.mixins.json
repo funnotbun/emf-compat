@@ -8,7 +8,8 @@
     "PlayerSkyhookRendererAccessor",
     "ItemSwapAnimationMixin",
     "PlayerModelSkyhookMixin",
-    "PlayerSkyhookRendererUpdateMixin"
+    "PlayerSkyhookRendererUpdateMixin",
+    "HatFeatureRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

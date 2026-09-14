@@ -22,6 +22,7 @@ public class EMFCompatCreateMod {
     public static final String KEY_SKYHOOK = "create.skyhook";
     public static final String KEY_CREATE_SA = "create.createSa";
     public static final String KEY_NEA_ITEMSWAP = "create.neaItemSwap";
+    public static final String KEY_HATS = "create.hats";
 
     public EMFCompatCreateMod() {
         ConfigRegistry.Section section = ConfigRegistry.section(MOD_ID, "Create")
@@ -33,7 +34,10 @@ public class EMFCompatCreateMod {
                         "Rotation-only (legacy)", "Held arm poses keep only their rotation.")
                 .addBoolean(KEY_SKYHOOK, "Skyhook", true,
                         "On", "Keep the skyhook hang pose while the pack keeps animating.",
-                        "Off", "Leave the skyhook pose to EMF.");
+                        "Off", "Leave the skyhook pose to EMF.")
+                .addBoolean(KEY_HATS, "Hats on mobs", true,
+                        "On", "Place the engineer's and logistics hat on top of the head under a resource pack's model.",
+                        "Off", "Leave the hat where Create puts it (it sinks to the neck under Fresh Animations).");
 
         if (CreateMods.CREATE_SA) {
             section.addBoolean(KEY_CREATE_SA, "Stuff 'N Additions", true,
@@ -66,5 +70,9 @@ public class EMFCompatCreateMod {
 
     public static boolean isNeaItemSwap() {
         return EMFCompatConfig.getBoolean(KEY_NEA_ITEMSWAP, true);
+    }
+
+    public static boolean isHats() {
+        return EMFCompatConfig.getBoolean(KEY_HATS, true);
     }
 }
