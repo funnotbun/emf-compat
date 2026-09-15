@@ -1113,11 +1113,11 @@
    "addon": "immersive_melodies",
    "loader": "fabric",
    "game_version": "1.21.1",
-   "version_number": "1.1.0",
+   "version_number": "1.2.0",
    "project": "emf-compat-immersive-melodies",
    "project_id": "XLUpeCri",
    "publish": true,
-   "file": "upload/Immersive Melodies/fabric/1.21.1/emf_compat_immersive_melodies_fabric_1.21.1_1.1.0.jar",
+   "file": "upload/Immersive Melodies/fabric/1.21.1/emf_compat_immersive_melodies_fabric_1.21.1_1.2.0.jar",
    "changelog": "extensions/immersive_melodies/CHANGELOG.md",
    "dependencies": [
     {
@@ -1137,17 +1137,17 @@
     }
    ],
    "display": "Immersive Melodies",
-   "name": "EMF Compat: Immersive Melodies 1.1.0"
+   "name": "EMF Compat: Immersive Melodies 1.2.0"
   },
   {
    "addon": "immersive_melodies",
    "loader": "forge",
    "game_version": "1.20.1",
-   "version_number": "1.1.0",
+   "version_number": "1.2.0",
    "project": "emf-compat-immersive-melodies",
    "project_id": "XLUpeCri",
    "publish": true,
-   "file": "upload/Immersive Melodies/forge/1.20.1/emf_compat_immersive_melodies_forge_1.20.1_1.1.0.jar",
+   "file": "upload/Immersive Melodies/forge/1.20.1/emf_compat_immersive_melodies_forge_1.20.1_1.2.0.jar",
    "changelog": "extensions/immersive_melodies/CHANGELOG.md",
    "dependencies": [
     {
@@ -1167,17 +1167,17 @@
     }
    ],
    "display": "Immersive Melodies",
-   "name": "EMF Compat: Immersive Melodies 1.1.0"
+   "name": "EMF Compat: Immersive Melodies 1.2.0"
   },
   {
    "addon": "immersive_melodies",
    "loader": "neoforge",
    "game_version": "1.21.1",
-   "version_number": "1.1.0",
+   "version_number": "1.2.0",
    "project": "emf-compat-immersive-melodies",
    "project_id": "XLUpeCri",
    "publish": true,
-   "file": "upload/Immersive Melodies/neoforge/1.21.1/emf_compat_immersive_melodies_neoforge_1.21.1_1.1.0.jar",
+   "file": "upload/Immersive Melodies/neoforge/1.21.1/emf_compat_immersive_melodies_neoforge_1.21.1_1.2.0.jar",
    "changelog": "extensions/immersive_melodies/CHANGELOG.md",
    "dependencies": [
     {
@@ -1197,7 +1197,7 @@
     }
    ],
    "display": "Immersive Melodies",
-   "name": "EMF Compat: Immersive Melodies 1.1.0"
+   "name": "EMF Compat: Immersive Melodies 1.2.0"
   },
   {
    "addon": "iron_spells",

@@ -6,7 +6,9 @@
   "mixins": [],
   "client": [
     "EntityModelAnimatorMixin",
-    "PlayerRendererMixin"
+    "EvokerItemLayerMixin",
+    "IllagerModelMixin",
+    "VindicatorItemLayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

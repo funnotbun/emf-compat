@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "EntityModelAnimatorMixin",
-    "PlayerRendererMixin"
+    "EvokerItemLayerMixin",
+    "IllagerModelMixin",
+    "VindicatorItemLayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -2,7 +2,6 @@ package strm.emfcompat.core;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.player.PlayerModel;
-import net.minecraft.world.entity.player.Player;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -57,9 +56,13 @@ public final class PoseManager {
         var mc = Minecraft.getInstance();
         if (mc.level == null) return;
 
-        var activeUUIDs = mc.level.players().stream()
-                .map(Player::getUUID)
-                .collect(java.util.stream.Collectors.toSet());
+        // Every entity still in the world, not just players: addons pose mobs too (a zombie playing
+        // an Immersive Melodies instrument), and dropping a live mob's pose here would snap it back
+        // into the pack's animation for a frame and restart its fade every few seconds.
+        var activeUUIDs = new java.util.HashSet<UUID>();
+        for (var entity : mc.level.entitiesForRendering()) {
+            activeUUIDs.add(entity.getUUID());
+        }
         entitySavedPoses.keySet().retainAll(activeUUIDs);
         entitySavedPosesBySource.keySet().retainAll(activeUUIDs);
         bodyFollowDelta.keySet().retainAll(activeUUIDs);

@@ -20,6 +20,7 @@ Tested with **[Fresh Animations: Player Extension](https://modrinth.com/resource
 
 - Compatible with **[Fresh Animations: Player Extension](https://modrinth.com/resourcepack/fa-player-extension)**.
 - Playing instruments doesn't get overridden by resource-pack animations.
+- Mobs play too: zombies, skeletons, piglins and illagers with an instrument keep their pose under **[Fresh Animations](https://modrinth.com/resourcepack/fresh-animations)**, and vindicators and evokers uncross their arms to hold it.
 - Should work with most player animation resource packs using EMF.
 
 enjoy ^_^

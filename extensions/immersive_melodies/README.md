@@ -8,8 +8,9 @@ Tested with **[Fresh Animations: Player Extension](https://modrinth.com/resource
 
 ## Features
 
-- Your arms keep the correct pose while playing the flute, aiming the slingshot or blowing bubbles.
+- Your arms keep the correct pose while playing any instrument.
 - Playing instruments doesn't get overridden by idle resource-pack animations.
+- Mobs play too: zombies, skeletons, piglins and illagers with an instrument keep their pose under **[Fresh Animations](https://modrinth.com/resourcepack/fresh-animations)**, and vindicators and evokers uncross their arms to hold it.
 - First-person hand pose stays visible.
 - Compatible with **[Fresh Animations: Player Extension](https://modrinth.com/resourcepack/fa-player-extension)**.
 - Should work with most player animation resource packs using EMF.
@@ -26,6 +27,7 @@ Open the in-game config screen (Mods → EMF Compat Core → Config) and pick th
 | Option | What it does |
 |---|---|
 | EMF compatibility | Master switch — turn the whole addon off to get plain Immersive Melodies behaviour. |
+| Mobs with instruments | Mobs keep their instrument pose too, and vindicators and evokers uncross their arms to hold it. |
 
 ## Build
 
