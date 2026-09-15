@@ -32,7 +32,7 @@ public class CreateHatArmorLayerMixin {
     @Redirect(method = "render", remap = false,
             at = @At(value = "INVOKE",
                     target = "Lcom/simibubi/create/content/trains/schedule/hat/TrainHatInfo;getAdjustedPart"))
-    private static List<ModelPart> emfcompatCreate$followTheMovedPart(
+    private List<ModelPart> emfcompatCreate$followTheMovedPart(
             TrainHatInfo info, ModelPart root, String defaultPart) {
         return HatGeometry.chain(info.part(), root, defaultPart);
     }
