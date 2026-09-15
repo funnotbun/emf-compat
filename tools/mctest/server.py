@@ -105,16 +105,18 @@ def mc_profiles() -> str:
 
 @mcp.tool()
 def mc_launch(profile: str, world: str | None = None, fresh_world: bool = False,
-              wait: bool = True, timeout: int = 300, enable: list[str] | None = None) -> str:
+              wait: bool = True, timeout: int = 300, enable: list[str] | None = None,
+              disable: list[str] | None = None) -> str:
     """Rebuilds the sandbox for a profile and starts the game offline.
 
     Our emf_compat jars are replaced by the newest builds in upload/ (run the Gradle build
     first). `world` is a world of the profile, copied into the sandbox once and reused;
     `fresh_world` copies it again. With `wait`, blocks until the player is in the world.
     `enable` names mods the profile keeps as `.disabled` (any part of the file name) and
-    switches them on for this sandbox only — the profile itself is never changed.
+    switches them on for this sandbox only — the profile itself is never changed. `disable` does
+    the opposite for mods the profile runs (e.g. one that takes over first-person hands).
     """
-    report = mctest.launch(profile, world, fresh_world=fresh_world, enable=enable)
+    report = mctest.launch(profile, world, fresh_world=fresh_world, enable=enable, disable=disable)
     if wait and world:
         report["ready"] = mctest.wait_ready(profile, timeout)
     return json.dumps(report, indent=1)

@@ -167,10 +167,13 @@ def _patch_options(path: Path) -> None:
 
 
 def prepare_sandbox(profile: Profile, world: str | None, use_project_jars: bool = True,
-                    fresh_world: bool = False, enable: list[str] | None = None) -> dict:
+                    fresh_world: bool = False, enable: list[str] | None = None,
+                    disable: list[str] | None = None) -> dict:
     src, dst = profile.path, profile.sandbox
     dst.mkdir(parents=True, exist_ok=True)
-    report = {"sandbox": str(dst), "swapped": [], "enabled": [], "driver": None, "world": None}
+    report = {"sandbox": str(dst), "swapped": [], "enabled": [], "disabled": [], "driver": None,
+              "world": None}
+    unmatched = {w.lower() for w in disable or []}
 
     mods = dst / "mods"
     if mods.exists():
@@ -179,6 +182,13 @@ def prepare_sandbox(profile: Profile, world: str | None, use_project_jars: bool 
     for jar in sorted((src / "mods").iterdir()):
         if not jar.name.endswith(".jar"):
             continue  # .disabled and friends stay off, exactly as in the profile
+        # And the other way round: a mod the profile runs can sit out one test run, e.g. one that
+        # takes over first-person hand rendering and hides what an addon does there.
+        off = [w for w in disable or [] if w.lower() in jar.name.lower()]
+        if off:
+            unmatched.difference_update(w.lower() for w in off)
+            report["disabled"].append(jar.name)
+            continue
         fresh = _fresh_build_of(jar.name, profile.loader) if use_project_jars else None
         if fresh is not None:
             shutil.copy2(fresh, mods / fresh.name)
@@ -186,6 +196,8 @@ def prepare_sandbox(profile: Profile, world: str | None, use_project_jars: bool 
                 report["swapped"].append(f"{jar.name} -> upload/{fresh.relative_to(REPO / 'upload')}")
         else:
             (mods / jar.name).symlink_to(jar)
+    if unmatched:
+        raise SystemExit(f"profile {profile.name!r} has no enabled mod matching {sorted(unmatched)}")
     # A mod the profile keeps switched off can be switched on for one test run — the sandbox is
     # ours, the profile keeps its .disabled file untouched.
     for want in enable or []:
@@ -195,8 +207,14 @@ def prepare_sandbox(profile: Profile, world: str | None, use_project_jars: bool 
             raise SystemExit(f"profile {profile.name!r} has no disabled mod matching {want!r}")
         for jar in matches:
             name = jar.name[: -len(".disabled")]
-            (mods / name).symlink_to(jar)
-            report["enabled"].append(name)
+            # One of ours switched on gets the fresh build too, like the enabled ones above.
+            fresh = _fresh_build_of(name, profile.loader) if use_project_jars else None
+            if fresh is not None:
+                shutil.copy2(fresh, mods / fresh.name)
+                report["enabled"].append(f"{name} -> upload/{fresh.relative_to(REPO / 'upload')}")
+            else:
+                (mods / name).symlink_to(jar)
+                report["enabled"].append(name)
     driver = _driver_jar(profile)
     if driver is not None:
         shutil.copy2(driver, mods / driver.name)
@@ -374,11 +392,11 @@ def running_pid(profile: Profile) -> int | None:
 
 def launch(name: str, world: str | None = None, width: int = 1280, height: int = 720,
            use_project_jars: bool = True, fresh_world: bool = False,
-           enable: list[str] | None = None) -> dict:
+           enable: list[str] | None = None, disable: list[str] | None = None) -> dict:
     profile = get_profile(name)
     if running_pid(profile):
         raise SystemExit(f"{profile.name} is already running (pid {running_pid(profile)}); stop it first")
-    report = prepare_sandbox(profile, world, use_project_jars, fresh_world, enable)
+    report = prepare_sandbox(profile, world, use_project_jars, fresh_world, enable, disable)
     cmd = build_command(profile, world, width, height)
     # The child keeps its own handle on the log, so the parent's can close with the block.
     with open(profile.sandbox / "mctest" / "launcher.out", "w") as log:
@@ -511,8 +529,9 @@ def _main(argv: list[str]) -> None:
     elif cmd == "launch":
         world = rest[rest.index("--world") + 1] if "--world" in rest else None
         enable = rest[rest.index("--enable") + 1].split(",") if "--enable" in rest else None
+        disable = rest[rest.index("--disable") + 1].split(",") if "--disable" in rest else None
         print(json.dumps(launch(rest[0], world, fresh_world="--fresh-world" in rest,
-                                enable=enable), indent=1))
+                                enable=enable, disable=disable), indent=1))
     elif cmd == "wait":
         print(json.dumps(wait_ready(rest[0]), indent=1))
     elif cmd == "steps":

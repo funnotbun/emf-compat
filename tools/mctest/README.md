@@ -51,6 +51,11 @@ python3 tools/mctest/mctest.py steps Test "$(cat tools/mctest/scenarios/worn-ite
 | | The parrot is the telling one: its head box is 2×2, so the scale Create takes from it is 0.25 and a hat that misses it comes out four times too big. A parrot never *falls onto* a seat, so the scene seats a chicken first (that is what spawns Create's seat entity), mounts the parrot onto it with `/ride`, and kills the chicken. |
 | `worn-items-scene-1.21.11.json` | The same without curios/Artifacts, with 1.21.5+ `equipment:` NBT. |
 | `worn-items-shots.json` | Camera positions, screenshots and the `model` probe for that scene. |
+| `instruments-scene.json` | A zombie, skeleton, pillager, vindicator, evoker and piglin playing Immersive Melodies instruments, under a lit roof so the undead do not burn. |
+| `instruments-shots.json` | Camera positions and screenshots for that scene. Toggle `immersivemelodies.mobs` to compare. |
+| `worn-items-scene-1.20.1.json` / `-26.json` | The worn-items scene for Forge 1.20.1 (`Count`/`tag` NBT, no curios) and for 26.x (renamed gamerules, a pause for the chunks before the fill). |
+| `chain-conveyor-scene.json` / `-26.json` | Two Create chain conveyors joined by a chain, the player under it with a wrench. Connections are written again once both blocks exist — Create drops a connection to a block that is not there yet. |
+| `chain-conveyor-shots.json` | Grabs the chain (the crosshair must be on the strand itself: z 337.3, straight up) and shoots the hang from front and back. |
 | `packs-vanilla / packs-fa / packs-fa-player.json` | The three pack configurations to shoot it in. |
 
 For contact sheets and images outside MCP, import `server.py`:
@@ -113,7 +118,9 @@ is copied, `resourcepacks/` and `shaderpacks/` linked, `options.txt` copied and 
 lost focus, sound off, chat hidden, no toggle crouch/sprint). One world is copied on first use;
 `fresh_world=True` copies it again. `.disabled` mods stay disabled, unless `enable=["artifacts"]`
 names them — then they are linked into the sandbox under their enabled name, and the profile still
-keeps its `.disabled` file.
+keeps its `.disabled` file. `disable=["punchy"]` (CLI `--disable punchy`) does the reverse for one run:
+Punchy takes over first-person hand rendering, so nothing hooked into `PlayerRenderer.renderHand`
+runs while it is installed.
 
 **Driving.** The driver polls `<sandbox>/mctest/inbox/*.json` every client tick, runs the steps and
 writes the answer to `outbox/`; both sides write to a temp file and rename, so half-written files are
