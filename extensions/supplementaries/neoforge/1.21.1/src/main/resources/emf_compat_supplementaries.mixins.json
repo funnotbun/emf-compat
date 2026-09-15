@@ -5,8 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [],
   "client": [
-    "HumanoidModelMixin",
-    "PlayerRendererMixin"
+    "HumanoidModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

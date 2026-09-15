@@ -4,8 +4,7 @@
   "package": "strm.emfcompat.supplementaries.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "HumanoidModelMixin",
-    "PlayerRendererMixin"
+    "HumanoidModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -5,8 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [],
   "client": [
-    "PlayerModelMixin",
-    "PlayerRendererMixin"
+    "PlayerModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

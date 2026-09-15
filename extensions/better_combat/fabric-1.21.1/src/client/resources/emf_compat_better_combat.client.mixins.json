@@ -6,7 +6,6 @@
   "client": [
     "PlayerModelMixin",
     "GenericPlayerAnimMixin",
-    "PlayerRendererMixin",
     "AttackAnimationSubStackMixin",
     "BetterCombatOneHandedSlamMixin"
   ],
