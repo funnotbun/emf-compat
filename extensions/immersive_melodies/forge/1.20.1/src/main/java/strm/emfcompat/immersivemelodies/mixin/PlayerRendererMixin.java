@@ -42,7 +42,7 @@ public class PlayerRendererMixin {
             ModelPart sleevePart,
             CallbackInfo ci
     ) {
-        restorePose(armPart, sleevePart, player);
+        emfcompatImmersiveMelodies$restorePose(armPart, sleevePart, player);
     }
 
     @Inject(
@@ -63,10 +63,10 @@ public class PlayerRendererMixin {
             ModelPart sleevePart,
             CallbackInfo ci
     ) {
-        restorePose(armPart, sleevePart, player);
+        emfcompatImmersiveMelodies$restorePose(armPart, sleevePart, player);
     }
 
-    private void restorePose(ModelPart armPart, ModelPart sleevePart, AbstractClientPlayer player) {
+    private void emfcompatImmersiveMelodies$restorePose(ModelPart armPart, ModelPart sleevePart, AbstractClientPlayer player) {
         SavedPoses saved = PoseManager.getSavedPoses(player.getUUID(), SOURCE);
         if (saved == null) return;
 

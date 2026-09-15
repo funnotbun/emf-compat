@@ -28,7 +28,7 @@ public class PlayerRendererMixin {
             )
     )
     private void neaemfcompat$restoreArmPoseBeforeFirstRender(PoseStack stack, MultiBufferSource buffer, int i, AbstractClientPlayer player, ModelPart armPart, ModelPart sleevePart, CallbackInfo ci) {
-        restorePose(armPart, sleevePart, player);
+        emfcompatNea$restorePose(armPart, sleevePart, player);
     }
 
     @Inject(
@@ -41,10 +41,10 @@ public class PlayerRendererMixin {
             )
     )
     private void neaemfcompat$restoreArmPoseBeforeSecondRender(PoseStack stack, MultiBufferSource buffer, int i, AbstractClientPlayer player, ModelPart armPart, ModelPart sleevePart, CallbackInfo ci) {
-        restorePose(armPart, sleevePart, player);
+        emfcompatNea$restorePose(armPart, sleevePart, player);
     }
 
-    private void restorePose(ModelPart armPart, ModelPart sleevePart, AbstractClientPlayer player) {
+    private void emfcompatNea$restorePose(ModelPart armPart, ModelPart sleevePart, AbstractClientPlayer player) {
         if (!NEAEMFCompat.isEnabled()) return;
 
         // Through the API rather than the raw map, so the global switch and any future gating
