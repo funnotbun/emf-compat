@@ -1,6 +1,6 @@
 package strm.emfcompat.takeaseat;
 
-import com.seatify.client.SeatifyClient;
+import com.takeaseat.client.TakeASeatClient;
 import com.zigythebird.playeranim.api.PlayerAnimationAccess;
 import com.zigythebird.playeranimcore.animation.layered.IAnimation;
 import net.fabricmc.loader.api.FabricLoader;
@@ -56,7 +56,7 @@ public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHo
         SNAPSHOTS.get().clear();
 
         if (!TakeASeatEMFCompatClient.isEnabled()) return true;
-        if (!FabricLoader.getInstance().isModLoaded("seatify")) return true;
+        if (!FabricLoader.getInstance().isModLoaded("takeaseat")) return true;
 
         EMFEntityRenderState state = context.activeState();
         if (state == null || state.isFirstPersonHand()) return true;
@@ -65,7 +65,7 @@ public final class TakeASeatAnimationHook extends EMFAnimationApi.EMFAnimationHo
 
         IAnimation layer;
         try {
-            layer = PlayerAnimationAccess.getPlayerAnimationLayer(player, SeatifyClient.SIT_LAYER);
+            layer = PlayerAnimationAccess.getPlayerAnimationLayer(player, TakeASeatClient.SIT_LAYER);
         } catch (Exception e) {
             return true;
         }

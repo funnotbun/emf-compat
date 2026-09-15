@@ -22,7 +22,7 @@
     "fabric-api": "*",
     "minecraft": ">=${minecraft_version}",
     "entity_model_features": ">=${emf_version}",
-    "seatify": "*",
+    "takeaseat": "*",
     "emf_compat_core": ">=2.0.0"
   }
 }

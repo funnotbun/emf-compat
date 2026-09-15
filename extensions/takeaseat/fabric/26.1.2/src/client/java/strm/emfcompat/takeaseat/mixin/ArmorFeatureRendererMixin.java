@@ -1,6 +1,6 @@
 package strm.emfcompat.takeaseat.mixin;
 
-import com.seatify.client.SeatifyClient;
+import com.takeaseat.client.TakeASeatClient;
 import com.zigythebird.playeranim.api.PlayerAnimationAccess;
 import com.zigythebird.playeranimcore.animation.layered.IAnimation;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -54,7 +54,7 @@ public class ArmorFeatureRendererMixin {
 
         IAnimation layer;
         try {
-            layer = PlayerAnimationAccess.getPlayerAnimationLayer(player, SeatifyClient.SIT_LAYER);
+            layer = PlayerAnimationAccess.getPlayerAnimationLayer(player, TakeASeatClient.SIT_LAYER);
         } catch (Exception e) {
             return model;
         }

@@ -3,6 +3,7 @@
 ## 2.0.0
 
 - Requires Entity Model Features 3.3.2 and EMF Compat Core 2.0.0
+- Fabric 26.1.2: works with Take a Seat 1.0.3, the release that renamed Seatify. Older Seatify builds are no longer supported
 
 ## 1.0.1 — Forge 1.20.1
 

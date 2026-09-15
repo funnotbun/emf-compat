@@ -48,7 +48,7 @@ dependencies {
     clientCompileOnly fabricApi.module("fabric-model-loading-api-v1", project.fabric_version)
 
     compileOnly 'maven.modrinth:ha1mEyJS:k0aEzbyO' // Player Animation Library 1.2.4 for Fabric 26.1
-    compileOnly 'maven.modrinth:Gg7qMzxE:ZYcB0bhR' // Take a Seat 1.0.1 for Fabric 26.1.2
+    compileOnly 'maven.modrinth:Gg7qMzxE:Ab9AaVL5' // Take a Seat 1.0.3 for Fabric 26.1.2 (the release that renamed Seatify)
     compileOnly "maven.modrinth:entity-model-features:${emf_version}-fabric-26.1"
     compileOnly "maven.modrinth:entitytexturefeatures:${etf_version}-fabric-26.1"
 }
