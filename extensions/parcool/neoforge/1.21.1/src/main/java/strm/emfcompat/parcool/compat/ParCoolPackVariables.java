@@ -48,11 +48,17 @@ import java.lang.reflect.Method;
  *     <li>{@code parcool_hang_catch} - how far to move the body down (pixels, negative up) as the
  *     ledge is caught: a short spring, stronger after a longer fall; the IK arm angles below are
  *     worked out from shoulders moved by it, so the hands stay on the ledge</li>
+ *     <li>{@code parcool_rarm_reach}/{@code parcool_larm_reach} - shuffling along a ledge, the hands go
+ *     hand over hand: 0 while a hand holds, up to 1 mid-reach to its next grip</li>
  *     <li>{@code parcool_rarm_ik}/{@code parcool_larm_ik} - 1 while hanging with a ledge top found
  *     for that hand; then {@code parcool_rarm_ik_rx}/{@code _ry} (and the left ones) are the arm
  *     rotations, in radians, that put the hand on the ledge, {@code parcool_rarm_ik_reach} the
  *     shoulder-to-ledge distance over the arm's length, and {@code parcool_rarm_ik_lift} how many
- *     pixels to raise the shoulder for those rotations to land the hand</li>
+ *     pixels to raise the shoulder for those rotations to land the hand. They carry on through a
+ *     climb up, the hands pushing on the ledge until they let go halfway.</li>
+ *     <li>{@code parcool_body_held} - how much the torso shows ParCool's pose rather than the
+ *     pack's, 0 to 1, faded like the core fades it: a cape or anything else hung off the pack's
+ *     torso variables should follow the torso part by that much</li>
  *     <li>{@code parcool_climb} - progress climbing up from a ledge, 0 to 1; 0 when not climbing</li>
  * </ul>
  *
@@ -153,8 +159,12 @@ public final class ParCoolPackVariables {
                 player -> holds(player).left().y());
         register("parcool_larm_hang_lift", "hang", "Pixels to raise the left shoulder while hanging",
                 player -> holds(player).left().lift());
-        register("parcool_hang_catch", "hang", "Body offset while catching a ledge, pixels, down positive; the ik arm angles already allow for it",
+        register("parcool_hang_catch", "hang", "Body offset while catching a ledge or climbing up from it, pixels, down positive; the ik arm angles already allow for it",
                 player -> hands(player).catchOffset());
+        register("parcool_rarm_reach", "hang", "Shuffling along a ledge: 0 while the right hand holds, rising to 1 mid-reach to its next grip",
+                player -> doing(action(player, "HANG_ON")) ? ParCoolHandIK.stepPhase(player.getUUID(), true) : 0f);
+        register("parcool_larm_reach", "hang", "Shuffling along a ledge: 0 while the left hand holds, rising to 1 mid-reach to its next grip",
+                player -> doing(action(player, "HANG_ON")) ? ParCoolHandIK.stepPhase(player.getUUID(), false) : 0f);
         register("parcool_rarm_ik", "hang", "1 while hanging with a ledge top found for the right hand, else 0",
                 player -> hands(player).rightValid() ? 1f : 0f);
         register("parcool_larm_ik", "hang", "1 while hanging with a ledge top found for the left hand, else 0",
@@ -175,13 +185,10 @@ public final class ParCoolPackVariables {
                 player -> hands(player).leftReach());
         register("parcool_larm_ik_lift", "hang", "How far to raise the left shoulder for the hand to reach, pixels",
                 player -> hands(player).leftLift());
+        register("parcool_body_held", "body", "How much the torso shows ParCool's pose instead of the pack's, 0 to 1; a cape follows the pack's torso variables, so it can ease them out by this",
+                player -> ParCoolPose.bodyHeld(player.getUUID()));
         register("parcool_climb", "climb", "Progress climbing up from a ledge, 0 to 1",
-                player -> {
-                    Object climb = action(player, "CLIMB_UP");
-                    int duration = (Integer) field(climb, "duration");
-                    return doing(climb) && duration > 0
-                            ? Math.min(1f, (doingTick(climb) + partialTick()) / duration) : 0f;
-                });
+                ParCoolPackVariables::climbProgress);
     }
 
     /** How a resource pack plays one of ParCool's running animations; see {@link #packPlays}. */
@@ -228,17 +235,63 @@ public final class ParCoolPackVariables {
         return 1f - hangFactor(player, freedBy) * (1f - hangFactor(player, "getBlendFactorBackToWall"));
     }
 
+    /** The wall each player last hung from, so the hands keep to that ledge while climbing up. */
+    private static final Map<UUID, Vec3> LAST_WALL = new HashMap<>();
+    /** When each player was last seen climbing up; the loose arms carry on a moment past the end. */
+    private static final Map<UUID, Long> LAST_CLIMB = new HashMap<>();
+    private static final long CLIMB_TAIL_NANOS = 1_000_000_000L;
+
+    /** Climb-up progress past which the hands let go of the ledge, from start to end of letting go. */
+    private static final float CLIMB_RELEASE_FROM = 0.45f;
+    private static final float CLIMB_RELEASE_TO = 0.75f;
+
     private static ParCoolHandIK.Holds holds(AbstractClientPlayer player) throws ReflectiveOperationException {
         Object hang = action(player, "HANG_ON");
-        if (!doing(hang)) return ParCoolHandIK.Holds.NONE;
-        return ParCoolHandIK.holds(player, (Vec3) invoke(hang, "getWallVec", partialTick()),
-                grip(player, "getBlendFactorRightToWall"), grip(player, "getBlendFactorLeftToWall"));
+        if (doing(hang)) {
+            Vec3 wall = (Vec3) invoke(hang, "getWallVec", partialTick());
+            if (wall != null) LAST_WALL.put(player.getUUID(), wall);
+            return ParCoolHandIK.holds(player, wall,
+                    grip(player, "getBlendFactorRightToWall"), grip(player, "getBlendFactorLeftToWall"));
+        }
+        // Climbing up, the hands stay on the ledge and push the body up past it, then let go.
+        float climb = climbProgress(player);
+        ParCoolHandIK.climbProgress(player.getUUID(), climb);
+        Vec3 wall = LAST_WALL.get(player.getUUID());
+        long now = System.nanoTime();
+        if (climb > 0f) {
+            LAST_CLIMB.put(player.getUUID(), now);
+        } else {
+            // Past the end the pack is still easing out of the climb: keep the arms loose, not zeroed.
+            Long last = LAST_CLIMB.get(player.getUUID());
+            if (last != null && now - last < CLIMB_TAIL_NANOS && wall != null) {
+                return ParCoolHandIK.holds(player, wall, 0f, 0f, true);
+            }
+        }
+        if (climb > 0f && wall != null) {
+            float t = Math.max(0f, Math.min(1f, (climb - CLIMB_RELEASE_FROM) / (CLIMB_RELEASE_TO - CLIMB_RELEASE_FROM)));
+            float grip = 1f - t * t * (3f - 2f * t);
+            return ParCoolHandIK.holds(player, wall, grip, grip, true);
+        }
+        return ParCoolHandIK.Holds.NONE;
+    }
+
+    private static float climbProgress(AbstractClientPlayer player) throws ReflectiveOperationException {
+        Object climb = action(player, "CLIMB_UP");
+        int duration = (Integer) field(climb, "duration");
+        return doing(climb) && duration > 0
+                ? Math.min(1f, (doingTick(climb) + partialTick()) / duration) : 0f;
     }
 
     private static ParCoolHandIK.Arms hands(AbstractClientPlayer player) throws ReflectiveOperationException {
         Object hang = action(player, "HANG_ON");
-        if (!doing(hang)) return ParCoolHandIK.Arms.NONE;
-        return ParCoolHandIK.arms(player, (Vec3) invoke(hang, "getWallVec", partialTick()));
+        if (doing(hang)) return ParCoolHandIK.arms(player, (Vec3) invoke(hang, "getWallVec", partialTick()));
+        Vec3 wall = LAST_WALL.get(player.getUUID());
+        float climb = climbProgress(player);
+        ParCoolHandIK.climbProgress(player.getUUID(), climb);
+        Long last = LAST_CLIMB.get(player.getUUID());
+        boolean tail = last != null && System.nanoTime() - last < CLIMB_TAIL_NANOS;
+        if ((climb > 0f || tail) && wall != null) return ParCoolHandIK.arms(player, wall, true);
+        return ParCoolHandIK.Arms.NONE;
     }
 
     private static void register(String name, String move, String explanation, Value value) {

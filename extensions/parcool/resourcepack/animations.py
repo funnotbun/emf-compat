@@ -37,11 +37,25 @@ STATE = {
     "var.pc_cyl": "if( varb.fcc, var.pc_cyl, var.pc_cy*min(1,frame_time*18) +var.pc_cyl*max(0,1-frame_time*18) )",
     "var.pc_hwall": "if( varb.fcc, var.pc_hwall, parcool_hang_wall*min(1,frame_time*6) +var.pc_hwall*max(0,1-frame_time*6) )",
     "var.pc_hfree": "1-var.pc_hwall",
-    "var.pc_shim": "if( varb.fcc, var.pc_shim, if(parcool_hang>0, -move_strafing, 0)*min(1,frame_time*6) +var.pc_shim*max(0,1-frame_time*6) )",
-    "var.pc_shimA": "abs(var.pc_shim)",
-    "var.pc_sph": "if( varb.fcc, var.pc_sph, var.pc_sph +var.pc_shimA*frame_time*1.4 )",
-    "var.pc_sw": "sin( var.pc_sph*pi*2 )",
-    "var.pc_reach": "0.5+0.5*var.pc_sw",
+    # climb up: weight, progress, and what the pose owns overall (hang and climb together)
+    "var.pc_had": "if( parcool_climb>0, 1, var.pc_lt>1.5, 0, var.pc_had )",
+    "var.pc_lt": "if( parcool_climb>0, 0, var.pc_lt +if(varb.fcc, 0, frame_time) )",
+    "var.pc_cw": "clamp( if( varb.fcc, var.pc_cw, parcool_climb>0 || (var.pc_had>0.5 && var.pc_lt<0.3), var.pc_cw +25*frame_time, var.pc_cw -2.5*frame_time ), 0, 1 )",
+    "var.pc_cp": "if( parcool_climb>0, parcool_climb, var.pc_cp )",
+    "var.pc_own": "1 -(1-var.pc_hw)*(1-var.pc_cw)",
+    # Inertia: the lean, the knees and the head chase their targets instead of taking them, the left
+    # knee a little behind the right; then a short settle once the feet are up on the ledge.
+    "var.pc_clean": "if( varb.fcc, var.pc_clean, 22*sin( pi*clamp(var.pc_cp*1.15,0,1) )*min(1,frame_time*9) +var.pc_clean*max(0,1-frame_time*9) )",
+    "var.pc_ckr": "if( varb.fcc, var.pc_ckr, sin( pi*clamp((var.pc_cp-0.12)/0.72,0,1) )*min(1,frame_time*14) +var.pc_ckr*max(0,1-frame_time*14) )",
+    "var.pc_ckl": "if( varb.fcc, var.pc_ckl, var.pc_ckr*min(1,frame_time*9) +var.pc_ckl*max(0,1-frame_time*9) )",
+    "var.pc_chd": "if( varb.fcc, var.pc_chd, (-16*(1-clamp(var.pc_cp/0.55,0,1)) +9*sin( pi*clamp((var.pc_cp-0.4)/0.5,0,1) ))*min(1,frame_time*8) +var.pc_chd*max(0,1-frame_time*8) )",
+    "var.pc_land": "exp( -var.pc_lt*7 )*sin( var.pc_lt*15 )*var.pc_had",
+    # Shuffling: the mod moves the hands hand over hand and says which one is reaching (0..1 each).
+    # The body answers it a beat late: it hangs off the hand that holds and lifts as the other reaches.
+    "var.pc_rr": "if( varb.fcc, var.pc_rr, parcool_rarm_reach*min(1,frame_time*7) +var.pc_rr*max(0,1-frame_time*7) )",
+    "var.pc_lr": "if( varb.fcc, var.pc_lr, parcool_larm_reach*min(1,frame_time*7) +var.pc_lr*max(0,1-frame_time*7) )",
+    "var.pc_sw": "var.pc_rr -var.pc_lr",
+    "var.pc_shimA": "clamp( var.pc_rr +var.pc_lr, 0, 1 )",
     "var.pc_leap": "clamp( if( varb.fcc, var.pc_leap, parcool_charge_jump>0 && !is_on_ground, var.pc_leap +8*frame_time, var.pc_leap -4*frame_time ), 0, 1 )",
 }
 
@@ -54,11 +68,11 @@ HANG = {
     # shifts its weight under whichever hand has just caught.
     "bodyrx": "torad( 6*var.pc_hwall +2*var.pc_hfree -1.5*var.pc_cy )",
     "bodyry": "torad( 8 )",
-    "bodyrz": "torad( 4 +7*(var.pc_reach-0.5)*var.pc_shim )",
-    "bodytx": "1.2*(var.pc_reach-0.5)*var.pc_shim",
-    "bodyty": "var.pc_cy +0.15*sin(var.Bt) +0.4*sin(var.pc_reach*pi)*var.pc_shimA",
+    "bodyrz": "torad( 4 -6*var.pc_sw )",
+    "bodytx": "1.2*var.pc_sw",
+    "bodyty": "var.pc_cy +0.15*sin(var.Bt) -0.6*var.pc_shimA",
     "headrx": "torad( -16 +2.5*var.pc_cyl )",
-    "headry": "torad( -10*(var.pc_reach-0.5)*var.pc_shim )",
+    "headry": "torad( -9*var.pc_sw )",
     # Hands on top of the ledge. The mod aims each arm at it and blends it with hanging loose when
     # ParCool lets that hand go (looking away along the wall), as directions, so an arm never swings
     # out sideways on the way or turns round when the ledge passes behind the back; the shoulder is
@@ -67,40 +81,83 @@ HANG = {
     # out along the ledge, and a little sway for a loose hand.
     "rarmrx": "parcool_rarm_hang_rx +torad( 4*sin(age/17)*(1-parcool_rarm_grip) )",
     "larmrx": "parcool_larm_hang_rx +torad( 4*sin(age/17 +1.3)*(1-parcool_larm_grip) )",
-    "rarmry": ("parcool_rarm_hang_ry"
-               " +torad( 30*var.pc_reach*max(0,-var.pc_shim) -10*(1-var.pc_reach)*max(0, var.pc_shim) )*parcool_rarm_grip"),
-    "larmry": ("parcool_larm_hang_ry"
-               " +torad( -30*var.pc_reach*max(0, var.pc_shim) +10*(1-var.pc_reach)*max(0,-var.pc_shim) )*parcool_larm_grip"),
+    "rarmry": "parcool_rarm_hang_ry",
+    "larmry": "parcool_larm_hang_ry",
     "rarmrz": "torad(  2*sin(age/13) )*(1-parcool_rarm_grip)",
     "larmrz": "torad( -2*sin(age/13 +0.7) )*(1-parcool_larm_grip)",
     "rarmty": "-parcool_rarm_hang_lift",
     "larmty": "-parcool_larm_hang_lift",
     # braced: knees to the wall, one higher; loose: a slow sway. The catch swings them in, trailing.
-    "rlegrx": ("torad( (-26 -7*max(0, var.pc_sw)*var.pc_shimA)*var.pc_hwall"
+    "rlegrx": ("torad( (-26 -8*var.pc_rr)*var.pc_hwall"
                " +3*sin(age/13)*var.pc_hfree -(2 +3*var.pc_hfree)*var.pc_cyl )"),
-    "llegrx": ("torad( (-16 -7*max(0,-var.pc_sw)*var.pc_shimA)*var.pc_hwall"
+    "llegrx": ("torad( (-16 -8*var.pc_lr)*var.pc_hwall"
                " -3*sin(age/13)*var.pc_hfree -(1.5 +2.5*var.pc_hfree)*var.pc_cyl )"),
     # legs are not parented to the torso in FA, so they take the catch's offset themselves
     "rlegty": "var.pc_cy",
     "llegty": "var.pc_cy",
-    "rlegrz": "torad(  5 +6*(var.pc_reach-0.5)*var.pc_shim*var.pc_hfree )",
-    "llegrz": "torad( -5 +6*(var.pc_reach-0.5)*var.pc_shim*var.pc_hfree )",
+    # loose legs swing with the body's shift
+    "rlegrz": "torad(  5 -6*var.pc_sw*var.pc_hfree )",
+    "llegrz": "torad( -5 -6*var.pc_sw*var.pc_hfree )",
 }
 
-# The FA layers faded out under the hang; FA's walk, jump and idle swings would fight the pose.
-FADED_LAYERS = ("idl", "mvmnt", "vrtcl")
+
+# Climb-up pose at full weight. ParCool still leans and lifts the whole model on the pose stack; this
+# is the parts over it: a little more lean in the torso, the hands pushing on the ledge until they let
+# go and swing back (the mod's IK carries on through the climb), the knees driven up one after the
+# other, and the head looking at the ledge then nodding over it - all a beat behind, not snapped.
+CLIMB = {
+    "bodyrx": "torad( 4 +var.pc_clean )",
+    "headrx": "torad( var.pc_chd )",
+    "rarmrx": ("parcool_rarm_hang_rx"
+               " +torad( 26*sin( pi*clamp((var.pc_cp-0.5)/0.45,0,1) )*(1-parcool_rarm_grip) )"),
+    "larmrx": ("parcool_larm_hang_rx"
+               " +torad( 22*sin( pi*clamp((var.pc_cp-0.55)/0.42,0,1) )*(1-parcool_larm_grip) )"),
+    # a loose arm points almost straight down, where its y rotation means little: let it go with the grip
+    "rarmry": "parcool_rarm_hang_ry*parcool_rarm_grip",
+    "larmry": "parcool_larm_hang_ry*parcool_larm_grip",
+    "rarmty": "-parcool_rarm_hang_lift",
+    "larmty": "-parcool_larm_hang_lift",
+    # the arms lead: the mod draws the body up to the ledge a little first, then trails ParCool's lift
+    # (pixels, down positive), and aims the arms from there; the legs hang off the torso with it
+    "bodyty": "parcool_hang_catch",
+    "rlegty": "parcool_hang_catch",
+    "llegty": "parcool_hang_catch",
+    # the right knee drives up high; the left leg first pushes off the wall behind, then follows it up;
+    # both flick back a little as the feet land on the ledge
+    "rlegrx": "torad( -24*(1-clamp(var.pc_cp/0.15,0,1)) -74*var.pc_ckr +14*sin( pi*clamp((var.pc_cp-0.78)/0.22,0,1) ) )",
+    "llegrx": ("torad( -15*(1-clamp(var.pc_cp/0.15,0,1)) +22*sin( pi*clamp((var.pc_cp-0.05)/0.4,0,1) )"
+               " -52*var.pc_ckl +10*sin( pi*clamp((var.pc_cp-0.82)/0.18,0,1) ) )"),
+    # the knees open a little as they come up
+    "rlegrz": "torad(  8*var.pc_ckr )",
+    "llegrz": "torad( -6*var.pc_ckl )",
+}
+
+# After a climb, whatever the pose: the body settles onto the feet.
+SETTLE = {
+    "bodyty": "0.9*var.pc_land",
+    "headrx": "torad( 3*var.pc_land )",
+    "rlegty": "0.9*var.pc_land",
+    "llegty": "0.9*var.pc_land",
+}
+
+# The FA layers faded out under the hang and the climb; FA's walk, jump and idle swings would fight
+# the pose, and it takes the top of a climb for a moment of flight.
+FADED_LAYERS = ("idl", "mvmnt", "vrtcl", "fly")
 
 # Added to FA's movement layer, per channel (the part after ``var.mvmnt_``).
 LAYERS = {
     "bodyrx": ["torad( 16 +4*cos(var.ls*2) )*var.pc_f", "torad( 35 +2*sin(var.Bt) )*var.pc_c", "torad(-8)*var.pc_leap"],
-    "bodyry": ["torad( 7*cos(var.ls) )*var.pc_f"],
+    # FA twists the torso with the arms already; more turns the hips away from the legs, which are
+    # not parented to the torso
+    "bodyry": ["0"],
     "bodytx": ["0.15*var.pc_shake*var.pc_c"],
     "bodyty": ["( 0.5 -0.9*cos(pi/4 +var.ls*2) )*var.pc_f", "( 1.6 +0.2*sin(var.Bt) )*var.pc_c"],
     "bodytz": ["6*var.pc_c"],
     "headrx": ["torad(4)*var.pc_f", "torad(-10)*var.pc_c"],
     "headry": ["-torad( 5*cos(var.ls) )*var.pc_f"],
-    "rarmrx": ["torad(  35*cos(pi/7 +var.ls) -8 )*var.pc_f*(1-var.requip/2)", "torad( 45 +3*sin(var.Bt) )*var.pc_c", "torad(-60)*var.pc_leap"],
-    "larmrx": ["torad( -35*cos(pi/7 +var.ls) -8 )*var.pc_f*(1-var.lequip/2)", "torad( 45 +3*sin(var.Bt) )*var.pc_c", "torad(-60)*var.pc_leap"],
+    # a little more drive on FA's arm swing, on the legs' beat: FA's swing already leads them
+    "rarmrx": ["torad(  12*cos(var.ls) +6 )*var.pc_f*(1-var.requip/2)", "torad( 45 +3*sin(var.Bt) )*var.pc_c", "torad(-60)*var.pc_leap"],
+    "larmrx": ["torad( -12*cos(var.ls) +6 )*var.pc_f*(1-var.lequip/2)", "torad( 45 +3*sin(var.Bt) )*var.pc_c", "torad(-60)*var.pc_leap"],
     "rarmrz": ["torad(7)*var.pc_f", "torad(12)*var.pc_c", "torad(25)*var.pc_leap"],
     "larmrz": ["-torad(7)*var.pc_f", "-torad(12)*var.pc_c", "-torad(25)*var.pc_leap"],
     "rfootrx": ["torad(-30)*var.pc_c"],
@@ -108,8 +165,14 @@ LAYERS = {
     # feet planted wide for the leap
     "rlegrz": ["torad(16)*var.pc_c"],
     "llegrz": ["-torad(16)*var.pc_c"],
-    "rlegrx": ["torad( -22*cos(var.ls +cos(var.ls)/4) -6 )*var.pc_f", "torad(20)*var.pc_leap"],
-    "llegrx": ["torad(  22*cos(var.ls -cos(var.ls)/4) -6 )*var.pc_f", "torad(10)*var.pc_leap"],
+    # a longer stride on FA's own, in its phase, and pulled forward: FA's sprint keeps the legs behind
+    # the body, and under the extra lean the back leg would kick up level
+    "rlegrx": ["torad( -12*cos(var.ls +cos(var.ls)/4) -16 )*var.pc_f", "torad(20)*var.pc_leap"],
+    "llegrx": ["torad(  12*cos(var.ls -cos(var.ls)/4) -16 )*var.pc_f", "torad(10)*var.pc_leap"],
+    # The legs are not parented to the torso either: they bob with it - FA's run bob and the extra
+    # one above - so the hips do not open and close over the tops of the legs.
+    "rlegty": ["( 0.5 -0.9*cos(pi/4 +var.ls*2) -cos(pi/4 +var.ls*2 -cos(var.ls*2)/4) )*var.pc_f"],
+    "llegty": ["( 0.5 -0.9*cos(pi/4 +var.ls*2) -cos(pi/4 +var.ls*2 -cos(var.ls*2)/4) )*var.pc_f"],
 }
 
 
@@ -121,16 +184,21 @@ CAPE_LIFT = "torad(30)*var.pc_c"
 
 def build(fa_layer_vars: set[str]) -> dict:
     """The .jpm, given the layer variables the installed FA+Player defines (``var.mvmnt_bodyrx``...)."""
-    missing = [c for c in [*LAYERS, *HANG] if f"var.mvmnt_{c}" not in fa_layer_vars]
+    missing = [c for c in [*LAYERS, *HANG, *CLIMB, *SETTLE] if f"var.mvmnt_{c}" not in fa_layer_vars]
     if missing:
         raise SystemExit(f"FA+Player has no movement layer for {missing}; player.jem would not sum them")
     additions: dict[str, list[str]] = {}
     # The run, charge and leap give way to the hang like FA's own layers do: ParCool keeps playing
     # the charge jump for a while after a ledge is caught, and its arms would add onto the hang's.
     for channel, terms in LAYERS.items():
-        additions.setdefault(channel, []).extend(f"({t})*(1-var.pc_hw)" for t in terms)
+        additions.setdefault(channel, []).extend(f"({t})*(1-var.pc_own)" for t in terms)
+    # The hang hands over to the climb: its share goes as the climb's comes in.
     for channel, pose in HANG.items():
-        additions.setdefault(channel, []).append(f"({pose})*var.pc_hw")
+        additions.setdefault(channel, []).append(f"({pose})*var.pc_hw*(1-var.pc_cw)")
+    for channel, pose in CLIMB.items():
+        additions.setdefault(channel, []).append(f"({pose})*var.pc_cw")
+    for channel, pose in SETTLE.items():
+        additions.setdefault(channel, []).append(pose)
     additions.setdefault("bodyrx", []).append(CAPE_LIFT)
 
     layers = {}
@@ -138,7 +206,7 @@ def build(fa_layer_vars: set[str]) -> dict:
         prefix, _, channel = var[len("var."):].partition("_")
         if prefix not in FADED_LAYERS:
             continue
-        expr = f"{var}*(1-var.pc_hw)"
+        expr = f"{var}*(1-var.pc_own)"
         if prefix == "mvmnt" and channel in additions:
             expr += " +" + " +".join(f"({t})" for t in additions[channel])
         if var == "var.idl_bodyrx":

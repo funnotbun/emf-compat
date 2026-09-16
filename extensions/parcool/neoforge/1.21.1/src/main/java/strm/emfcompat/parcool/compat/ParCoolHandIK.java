@@ -102,6 +102,8 @@ public final class ParCoolHandIK {
     private static final float RAISE_UP_SECONDS = 0.12f;
     /** How long after the catch every raise still comes in at once, holding the hands through the pull. */
     private static final float CATCH_SECONDS = 0.5f;
+    /** How long a hang takes to settle at the lift ParCool gives it. */
+    private static final float SETTLE_SECONDS = 0.3f;
     /** Model pixels in a block, for the player's 0.9375 model scale. */
     private static final float PIXELS_PER_BLOCK = 16f / 0.9375f;
 
@@ -112,6 +114,113 @@ public final class ParCoolHandIK {
     }
 
     private static final Map<UUID, Hang> HANGS = new HashMap<>();
+
+    /**
+     * Climbing up, the arms lead: the shoulders draw up to the ledge a little before ParCool lifts the
+     * player, and then the body trails its rise by a moment, as if pulled up by the arms.
+     */
+    private static final float CLIMB_PULL_PIXELS = 1.5f;
+    private static final float CLIMB_LAG_SECONDS = 0.035f;
+    private static final float CLIMB_LAG_MAX_PIXELS = 3f;
+
+    /** Each player's climb progress this frame, set by the variable that reads it; render thread only. */
+    private static final Map<UUID, Float> CLIMB = new HashMap<>();
+    /** Each player's height, trailed: where the body is drawn while climbing. */
+    private static final Map<UUID, double[]> TRAILED_Y = new HashMap<>();
+
+    public static void climbProgress(UUID uuid, float progress) {
+        CLIMB.put(uuid, progress);
+    }
+
+    private static float climbOffset(UUID uuid) {
+        float p = CLIMB.getOrDefault(uuid, 0f);
+        float pull = -CLIMB_PULL_PIXELS * (float) Math.sin(Math.PI * Math.max(0f, Math.min(1f, p / 0.3f)));
+        double[] trailed = TRAILED_Y.get(uuid);
+        float lag = trailed == null ? 0f : (float) ((trailed[1] - trailed[0]) * PIXELS_PER_BLOCK);
+        // A soft cap, so a fast lift reads as a lag and not as the body parked lower
+        return pull + CLIMB_LAG_MAX_PIXELS * (float) Math.tanh(Math.max(0f, lag) / CLIMB_LAG_MAX_PIXELS);
+    }
+    /** Where each hand holds the ledge, in the world, by player and side; kept for climbing up. */
+    private static final Map<String, Vec3> GRIPS = new HashMap<>();
+
+    /**
+     * Hand over hand along the ledge. A hand stays where it grips while the body moves under it, and
+     * once the shoulder has left it this far behind it reaches over to a new grip a little ahead,
+     * one hand at a time - like feet stepping, so a shuffle reads as the hands doing it.
+     */
+    private static final double STEP_TRIGGER = 0.2;
+    /** How far past the spot under the shoulder the reaching hand lands, in the direction of travel. */
+    private static final double STEP_LEAD = 0.12;
+    /** How high the hand lifts off the ledge mid-reach, in blocks. */
+    private static final double STEP_LIFT = 0.06;
+    private static final float STEP_SECONDS = 0.28f;
+    /** A ledge top this much higher or lower is another ledge: the hand goes straight there. */
+    private static final double SAME_LEDGE = 0.25;
+
+    private static final class Step {
+        Vec3 planted;
+        Vec3 from;
+        Vec3 to;
+        long start = -1;
+        /** Last frame's reach progress, 0 while planted; handed to the pack. */
+        float phase;
+    }
+
+    private static final Map<String, Step> STEPS = new HashMap<>();
+
+    /**
+     * Where the hand is this frame: planted, or on its way to a new grip. Works from the clock, so
+     * solving the same frame twice gives the same answer.
+     */
+    private static Vec3 stepped(String key, String otherKey, Vec3 desired, Vec3 wall, long now) {
+        Step step = STEPS.computeIfAbsent(key, k -> new Step());
+        if (step.planted == null || Math.abs(step.planted.y - desired.y) > SAME_LEDGE) {
+            step.planted = desired;
+            step.start = -1;
+        }
+        if (step.start >= 0) {
+            float t = (now - step.start) / 1e9f / STEP_SECONDS;
+            if (t >= 1f) {
+                step.planted = step.to;
+                step.start = -1;
+                step.phase = 0f;
+            } else {
+                // The reach follows the body: aim ahead of where the shoulder is now.
+                Vec3 along = desired.subtract(step.from).multiply(1, 0, 1);
+                if (along.lengthSqr() > 1e-6) step.to = desired.add(along.normalize().scale(STEP_LEAD));
+                float ease = t * t * t * (t * (6f * t - 15f) + 10f);
+                float arc = (float) Math.sin(Math.PI * t);
+                step.phase = arc;
+                return step.from.lerp(step.to, ease).add(0, STEP_LIFT * arc, 0).subtract(wall.scale(0.04 * arc));
+            }
+        }
+        Vec3 behind = desired.subtract(step.planted).multiply(1, 0, 1);
+        Step other = STEPS.get(otherKey);
+        boolean otherReaching = other != null && other.start >= 0
+                && (now - other.start) / 1e9f < STEP_SECONDS * 0.5f;
+        if (behind.length() > STEP_TRIGGER && !otherReaching) {
+            step.from = step.planted;
+            step.to = desired.add(behind.normalize().scale(STEP_LEAD));
+            step.start = now;
+        }
+        return step.planted;
+    }
+
+    /** How far through a reach each hand is, 0 planted to 1 mid-reach and back; for the pack. */
+    public static float stepPhase(UUID uuid, boolean right) {
+        Step step = STEPS.get(uuid.toString() + (right ? "R" : "L"));
+        return step == null ? 0f : step.phase;
+    }
+
+    private static boolean reaching(String key) {
+        Step step = STEPS.get(key);
+        return step != null && step.start >= 0;
+    }
+
+    private static void resetSteps(UUID uuid) {
+        STEPS.remove(uuid.toString() + "R");
+        STEPS.remove(uuid.toString() + "L");
+    }
     private static final Map<UUID, Fall> FALLS = new HashMap<>();
 
     private record Frame(Matrix4f model, Vec3 camera) {
@@ -133,6 +242,15 @@ public final class ParCoolHandIK {
         FRAMES.put(player.getUUID(), new Frame(new Matrix4f(pose), camera));
 
         long now = System.nanoTime();
+        // [trailed y, current y, last update]
+        double y = net.minecraft.util.Mth.lerp(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false),
+                player.yo, player.getY());
+        double[] trailed = TRAILED_Y.computeIfAbsent(player.getUUID(), k -> new double[]{y, y, now});
+        double dt = Math.min(0.1, (now - trailed[2]) / 1e9);
+        trailed[0] += (y - trailed[0]) * (1 - Math.exp(-dt / CLIMB_LAG_SECONDS));
+        if (y < trailed[0]) trailed[0] = y;
+        trailed[1] = y;
+        trailed[2] = now;
         float speed = (float) (player.getY() - player.yo);
         Fall fall = FALLS.computeIfAbsent(player.getUUID(), k -> new Fall());
         if (Math.abs(speed) >= Math.abs(fall.speed) || now - fall.at > FALL_MEMORY_NANOS) {
@@ -156,11 +274,25 @@ public final class ParCoolHandIK {
 
     /** The solution for this model evaluation, worked out once however many variables read it. */
     public static Arms arms(AbstractClientPlayer player, @Nullable Vec3 wall) {
+        return arms(player, wall, false);
+    }
+
+    /**
+     * @param climbing climbing up off the ledge: the hands keep to where they held it, and there is no
+     *                 catch to spring or short arm to raise the body for
+     */
+    public static Arms arms(AbstractClientPlayer player, @Nullable Vec3 wall, boolean climbing) {
         UUID uuid = player.getUUID();
         // Every variable of one model evaluation reads within well under a millisecond.
         long now = System.nanoTime();
         Long solvedAt = SOLVED_AT.get(uuid);
         if (solvedAt != null && now - solvedAt < SOLVE_EVERY_NANOS) return SOLVED.get(uuid);
+        if (climbing) {
+            Arms arms = solve(player, wall, climbOffset(uuid), 0f, true, true);
+            SOLVED.put(uuid, arms);
+            SOLVED_AT.put(uuid, now);
+            return arms;
+        }
 
         Hang hang = HANGS.computeIfAbsent(uuid, k -> new Hang());
         if (now - hang.lastSeen > SAME_HANG_NANOS) {
@@ -173,22 +305,24 @@ public final class ParCoolHandIK {
             hang.torsoLift = 0f;
             hang.raise = 0f;
             hang.usualRaise = 0f;
+            resetSteps(uuid);
         }
         float dt = Math.min(0.1f, (now - hang.lastSeen) / 1e9f);
         hang.lastSeen = now;
 
         // ParCool lifts the torso for the hang and lowers it again, briefly, while blending its
         // look-around poses: that would bob the whole model, so it is taken back out.
+        // Only dips below the lift the hang settled at count: shuffling, ParCool bobs the torso above it.
         float torsoLift = torsoLift(player);
-        hang.torsoLift = Math.max(hang.torsoLift, torsoLift);
-        float offset = catchOffset(hang, now) - (hang.torsoLift - torsoLift) * PIXELS_PER_BLOCK;
+        if ((now - hang.start) / 1e9f < SETTLE_SECONDS) hang.torsoLift = Math.max(hang.torsoLift, torsoLift);
+        float offset = catchOffset(hang, now) - Math.max(0f, hang.torsoLift - torsoLift) * PIXELS_PER_BLOCK;
 
         float held = Math.max(hang.raise * (float) Math.exp(-dt / RAISE_SECONDS), hang.usualRaise);
-        Arms arms = solve(player, wall, offset, held, false);
+        Arms arms = solve(player, wall, offset, held, false, false);
         float needed = arms.shortfall();
         if ((now - hang.start) / 1e9f > CATCH_SECONDS && needed > held) {
             float eased = held + (needed - held) * (1f - (float) Math.exp(-dt / RAISE_UP_SECONDS));
-            arms = solve(player, wall, offset, eased, true);
+            arms = solve(player, wall, offset, eased, true, false);
         }
         float tau = needed > hang.usualRaise ? USUAL_RAISE_UP_SECONDS : USUAL_RAISE_DOWN_SECONDS;
         hang.usualRaise += (needed - hang.usualRaise) * (1f - (float) Math.exp(-dt / tau));
@@ -241,7 +375,12 @@ public final class ParCoolHandIK {
      * @param rightGrip how much ParCool holds on with the right hand right now, 0 to 1
      */
     public static Holds holds(AbstractClientPlayer player, @Nullable Vec3 wall, float rightGrip, float leftGrip) {
-        Arms arms = arms(player, wall);
+        return holds(player, wall, rightGrip, leftGrip, false);
+    }
+
+    public static Holds holds(AbstractClientPlayer player, @Nullable Vec3 wall, float rightGrip, float leftGrip,
+                              boolean climbing) {
+        Arms arms = arms(player, wall, climbing);
         UUID uuid = player.getUUID();
         HoldState state = HOLDS.computeIfAbsent(uuid, k -> new HoldState());
         long now = System.nanoTime();
@@ -332,7 +471,7 @@ public final class ParCoolHandIK {
      * @param exactly   raise the body by heldRaise only, even if the arms need more
      */
     private static Arms solve(AbstractClientPlayer player, @Nullable Vec3 wall, float catchOffset, float heldRaise,
-                              boolean exactly) {
+                              boolean exactly, boolean remembered) {
         Frame frame = FRAMES.get(player.getUUID());
         if (frame == null || wall == null) return new Arms(false, 0, 0, 0, 0, false, 0, 0, 0, 0, catchOffset, 0);
         Vec3 horizontal = new Vec3(wall.x, 0, wall.z);
@@ -342,16 +481,19 @@ public final class ParCoolHandIK {
         Matrix4f toWorld = frame.model();
         Matrix4f toModel = new Matrix4f(toWorld).invert();
         // The shoulders as the pack will draw them, moved with the body for the catch.
-        float[] right = aim(player, frame, toModel, shoulder(RIGHT_SHOULDER, catchOffset), horizontal);
-        float[] left = aim(player, frame, toModel, shoulder(LEFT_SHOULDER, catchOffset), horizontal);
+        float[] right = aim(player, frame, toModel, shoulder(RIGHT_SHOULDER, catchOffset), horizontal, remembered);
+        float[] left = aim(player, frame, toModel, shoulder(LEFT_SHOULDER, catchOffset), horizontal, remembered);
         // ParCool carries the player past the hang and pulls it back up, further than an arm and a
         // raised shoulder reach: then the body goes up by the rest, so the hands stay on the ledge.
-        float shortfall = Math.max(right == null ? 0f : right[4], left == null ? 0f : left[4]);
+        // Only a holding hand pulls the body up: a reaching one aims ahead, past where it can get to.
+        String id = player.getUUID().toString();
+        float shortfall = Math.max(right == null || reaching(id + "R") ? 0f : right[4],
+                left == null || reaching(id + "L") ? 0f : left[4]);
         float raise = exactly ? heldRaise : Math.max(shortfall, heldRaise);
         if (raise > 0f) {
             catchOffset -= raise;
-            right = aim(player, frame, toModel, shoulder(RIGHT_SHOULDER, catchOffset), horizontal);
-            left = aim(player, frame, toModel, shoulder(LEFT_SHOULDER, catchOffset), horizontal);
+            right = aim(player, frame, toModel, shoulder(RIGHT_SHOULDER, catchOffset), horizontal, remembered);
+            left = aim(player, frame, toModel, shoulder(LEFT_SHOULDER, catchOffset), horizontal, remembered);
         }
         if (right == null) right = new float[5];
         if (left == null) left = new float[5];
@@ -370,22 +512,34 @@ public final class ParCoolHandIK {
      */
     @Nullable
     private static float[] aim(AbstractClientPlayer player, Frame frame, Matrix4f toModel,
-                               Vector3f shoulder, Vec3 wall) {
-        Vector3f shoulderBlocks = frame.model().transformPosition(new Vector3f(shoulder).div(16f));
-        Vec3 shoulderWorld = new Vec3(shoulderBlocks.x, shoulderBlocks.y, shoulderBlocks.z).add(frame.camera());
+                               Vector3f shoulder, Vec3 wall, boolean remembered) {
+        String key = player.getUUID().toString() + (shoulder.x < 0 ? "R" : "L");
+        Vec3 grip;
+        if (remembered) {
+            grip = GRIPS.get(key);
+            if (grip == null) return null;
+        } else {
+            Vector3f shoulderBlocks = frame.model().transformPosition(new Vector3f(shoulder).div(16f));
+            Vec3 shoulderWorld = new Vec3(shoulderBlocks.x, shoulderBlocks.y, shoulderBlocks.z).add(frame.camera());
 
-        // The wall face ahead of the shoulder; from a little lower too, for a shoulder above the edge.
-        BlockHitResult face = clip(player, shoulderWorld, shoulderWorld.add(wall.scale(1.2)));
-        if (face.getType() == HitResult.Type.MISS) {
-            Vec3 lower = shoulderWorld.add(0, -0.4, 0);
-            face = clip(player, lower, lower.add(wall.scale(1.2)));
+            // The wall face ahead of the shoulder; from a little lower too, for a shoulder above the edge.
+            BlockHitResult face = clip(player, shoulderWorld, shoulderWorld.add(wall.scale(1.2)));
+            if (face.getType() == HitResult.Type.MISS) {
+                Vec3 lower = shoulderWorld.add(0, -0.4, 0);
+                face = clip(player, lower, lower.add(wall.scale(1.2)));
+                if (face.getType() == HitResult.Type.MISS) return null;
+            }
+            double depth = face.getLocation().subtract(shoulderWorld).dot(wall);
+
+            // Down onto the top of that block.
+            Vec3 above = shoulderWorld.add(wall.scale(depth + ONTO_TOP)).add(0, 1.0, 0);
+            BlockHitResult top = clip(player, above, above.add(0, -1.8, 0));
+            if (top.getType() == HitResult.Type.MISS || top.getDirection() != Direction.UP) return null;
+            String otherKey = player.getUUID().toString() + (shoulder.x < 0 ? "L" : "R");
+            grip = stepped(key, otherKey, top.getLocation().add(0, HAND_CLEARANCE, 0), wall, System.nanoTime());
+            GRIPS.put(key, grip);
         }
-        double depth = face.getLocation().subtract(shoulderWorld).dot(wall);
-
-        // Down onto the top of that block.
-        Vec3 above = shoulderWorld.add(wall.scale(depth + ONTO_TOP)).add(0, 1.0, 0);
-        BlockHitResult top = clip(player, above, above.add(0, -1.8, 0));
-        Vec3 target = top.getLocation().add(0, HAND_CLEARANCE, 0).subtract(frame.camera());
+        Vec3 target = grip.subtract(frame.camera());
 
         Vector3f inModel = toModel.transformPosition(new Vector3f((float) target.x, (float) target.y, (float) target.z))
                 .mul(16f).sub(shoulder);
@@ -406,8 +560,10 @@ public final class ParCoolHandIK {
         float lift = 0f;
         float shortBy = 0f;
         float horizontal = (float) Math.sqrt(inModel.x * inModel.x + inModel.z * inModel.z);
-        if (distance > ARM_REACH && inModel.y < 0f && horizontal < ARM_REACH) {
-            float vertical = (float) Math.sqrt(ARM_REACH * ARM_REACH - horizontal * horizontal);
+        if (distance > ARM_REACH && inModel.y < 0f) {
+            // Past an arm's length sideways the shoulder can only go all the way up: no cut-off, which
+            // would drop the lift from full to none as a reaching hand crossed it.
+            float vertical = (float) Math.sqrt(Math.max(0f, ARM_REACH * ARM_REACH - horizontal * horizontal));
             float needed = -inModel.y - vertical;
             lift = Math.min(MAX_LIFT, needed);
             shortBy = needed - lift;

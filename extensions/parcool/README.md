@@ -46,16 +46,18 @@ ParCool's own animations are keyframed poses that look out of place next to a pr
 | `parcool_hang_left_to_wall`, `parcool_hang_right_to_wall`, `parcool_hang_back_to_wall` | how far a player hanging with the feet on the wall has turned away from it, 0 to 1 |
 | `parcool_rarm_grip`, `parcool_larm_grip` | 1 while that hand holds the ledge, 0 while it hangs free — turned side-on, only the hand nearer the wall holds on; eased |
 | `parcool_rarm_hang_rx`, `parcool_rarm_hang_ry`, `parcool_rarm_hang_lift` (and `larm`) | the finished hanging arm: on the ledge by IK, loose, or smoothly between; `ry` never wraps |
+| `parcool_rarm_reach`, `parcool_larm_reach` | shuffling along a ledge the hands go hand over hand: 0 while a hand holds, up to 1 mid-reach to its next grip |
 | `parcool_rarm_ik`, `parcool_larm_ik` | 1 while hanging with a ledge top found for that hand |
 | `parcool_hang_catch` | pixels to move the body down (negative: up) while catching a ledge and after, so the hands stay on it; the IK angles allow for it |
 | `parcool_rarm_ik_rx`, `parcool_rarm_ik_ry`, `parcool_larm_ik_rx`, `parcool_larm_ik_ry` | arm rotations, in radians, that put each hand on top of the ledge |
 | `parcool_rarm_ik_lift`, `parcool_larm_ik_lift` | pixels to raise each shoulder so the hand reaches; the rotations assume it is raised |
 | `parcool_rarm_ik_reach`, `parcool_larm_ik_reach` | shoulder-to-ledge distance over the arm's length, before the lift |
+| `parcool_body_held` | how much the torso shows ParCool's pose instead of the pack's, 0 to 1, faded like the core; a cape hung off the pack's torso variables follows the torso by this much |
 | `parcool_climb` | progress climbing up from a ledge, 0 to 1 |
 
 A pack that reads a move's variables takes that move over: the addon stops replaying ParCool's pose and its torso lean for it. Moves the pack does not read keep ParCool's poses.
 
-An animation module for **Fresh Animations: Player Extension** lives in `resourcepack/`; for now it animates the fast run, the charge jump and hanging from a ledge; the other moves keep ParCool's poses. FreshLX's terms do not allow sharing their files unedited, so it is built on your own copy:
+An animation module for **Fresh Animations: Player Extension** lives in `resourcepack/`; for now it animates the fast run, the charge jump, hanging from a ledge and climbing up from it; the other moves keep ParCool's poses. FreshLX's terms do not allow sharing their files unedited, so it is built on your own copy:
 
 ```bash
 python3 extensions/parcool/resourcepack/build_pack.py <FA+Player zip> <resourcepacks folder>
