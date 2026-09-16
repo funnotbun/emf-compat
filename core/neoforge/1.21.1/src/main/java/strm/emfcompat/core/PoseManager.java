@@ -231,15 +231,26 @@ public final class PoseManager {
      * whole upper body while an action controls the arms.
      */
     public static boolean hasArmPoseExcept(UUID uuid, String excludeSource) {
+        return hasArmPoseExcept(uuid, excludeSource, Integer.MIN_VALUE);
+    }
+
+    /**
+     * {@link #hasArmPoseExcept(UUID, String)}, counting only sources whose merge priority is at
+     * least {@code minPriority}. Lets a pose yield its arms to an action (an attack, priority 0)
+     * without also yielding them to a background pose of the same mod (a weapon idle, below 0).
+     * The default source counts as priority 0.
+     */
+    public static boolean hasArmPoseExcept(UUID uuid, String excludeSource, int minPriority) {
         if (!EMFCompatCore.isCompatEnabled()) return false;
         SavedPoses def = entitySavedPoses.get(uuid);
-        if (def != null && emfcompat$armPosed(def)) {
+        if (def != null && 0 >= minPriority && emfcompat$armPosed(def)) {
             return true;
         }
         Map<String, SavedPoses> sources = entitySavedPosesBySource.get(uuid);
         if (sources != null) {
             for (Map.Entry<String, SavedPoses> e : sources.entrySet()) {
-                if (!e.getKey().equals(excludeSource) && emfcompat$armPosed(e.getValue())) {
+                if (!e.getKey().equals(excludeSource) && priorityOf(e.getKey()) >= minPriority
+                        && emfcompat$armPosed(e.getValue())) {
                     return true;
                 }
             }

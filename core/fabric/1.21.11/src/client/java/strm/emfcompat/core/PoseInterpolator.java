@@ -181,10 +181,27 @@ public final class PoseInterpolator {
      */
     public static void applyPart(UUID uuid, String name, ModelPart part, PoseSnapshot snap) {
         if (snap.rotationOnly) {
-            blend(uuid, name, part, snap.xRot, snap.yRot, snap.zRot, false, 0f, 0f, 0f);
+            blend(uuid, name, part, snap, snap.xRot, snap.yRot, snap.zRot, false, 0f, 0f, 0f);
             return;
         }
-        blend(uuid, name, part, snap.xRot, snap.yRot, snap.zRot, true, snap.x, snap.y, snap.z);
+        float scaleX = part.xScale, scaleY = part.yScale, scaleZ = part.zScale;
+        blend(uuid, name, part, snap, snap.xRot, snap.yRot, snap.zRot, true, snap.x, snap.y, snap.z);
+        applyScaleAndVisibility(part, snap, scaleX, scaleY, scaleZ);
+    }
+
+    /** Scale follows the fade weight of a self-blended pose; everything else takes it outright. */
+    private static void applyScaleAndVisibility(ModelPart part, PoseSnapshot snap,
+                                                float liveX, float liveY, float liveZ) {
+        if (snap.selfBlended && snap.weight < 1f) {
+            part.xScale = lerp(liveX, snap.xScale, snap.weight);
+            part.yScale = lerp(liveY, snap.yScale, snap.weight);
+            part.zScale = lerp(liveZ, snap.zScale, snap.weight);
+            if (snap.weight >= 0.5f) {
+                part.visible = snap.visible;
+                part.skipDraw = snap.skipDraw;
+            }
+            return;
+        }
         part.xScale = snap.xScale;
         part.yScale = snap.yScale;
         part.zScale = snap.zScale;
@@ -199,10 +216,10 @@ public final class PoseInterpolator {
     public static void applyArm(UUID uuid, String name, ModelPart part, PoseSnapshot snap,
                                 @Nullable Vector3f bodyDelta) {
         if (bodyDelta == null) {
-            blend(uuid, name, part, snap.xRot, snap.yRot, snap.zRot, false, 0f, 0f, 0f);
+            blend(uuid, name, part, snap, snap.xRot, snap.yRot, snap.zRot, false, 0f, 0f, 0f);
             return;
         }
-        blend(uuid, name, part, snap.xRot, snap.yRot, snap.zRot, true,
+        blend(uuid, name, part, snap, snap.xRot, snap.yRot, snap.zRot, true,
                 snap.x + bodyDelta.x, snap.y + bodyDelta.y, snap.z + bodyDelta.z);
         part.xScale = snap.xScale;
         part.yScale = snap.yScale;
@@ -232,6 +249,7 @@ public final class PoseInterpolator {
                 it.remove();
                 continue;
             }
+            fade.sourceWeight = Float.NaN;
             emit(fade, part, false, 0f, 0f, 0f, fade.blendsPosition, 0f, 0f, 0f);
             if (!fade.posed && fade.weight <= DONE_WEIGHT) {
                 it.remove();
@@ -273,11 +291,12 @@ public final class PoseInterpolator {
         STATES.keySet().retainAll(activeUUIDs);
     }
 
-    private static void blend(UUID uuid, String name, ModelPart part,
+    private static void blend(UUID uuid, String name, ModelPart part, PoseSnapshot snap,
                               float xRot, float yRot, float zRot,
                               boolean withPosition, float x, float y, float z) {
         PartFade fade = STATES.computeIfAbsent(uuid, k -> new HashMap<>())
                 .computeIfAbsent(name, k -> new PartFade());
+        fade.sourceWeight = snap.selfBlended ? snap.weight : Float.NaN;
         emit(fade, part, true, xRot, yRot, zRot, withPosition, x, y, z);
     }
 
@@ -297,7 +316,36 @@ public final class PoseInterpolator {
         }
         if (fade.frame != frameId) {
             fade.frame = frameId;
-            if (posed) {
+            if (posed && !Float.isNaN(fade.sourceWeight)) {
+                // The source blends this pose itself: its weight is the fade, it is continuous by
+                // contract, and the pack's live animation is always what it blends over.
+                if (!fade.selfBlended && (fade.posed || fade.weight > DONE_WEIGHT)) {
+                    // Taking over a part that another pose holds or is still leaving. The source's
+                    // own weight knows nothing of that pose, so hand over from what is on screen.
+                    fade.handoverXRot = fade.outXRot;
+                    fade.handoverYRot = fade.outYRot;
+                    fade.handoverZRot = fade.outZRot;
+                    fade.handoverX = fade.outX;
+                    fade.handoverY = fade.outY;
+                    fade.handoverZ = fade.outZ;
+                    fade.handover = 0f;
+                }
+                fade.selfBlended = true;
+                fade.blendsPosition = withPosition;
+                fade.baseIsLive = true;
+                fade.poseXRot = xRot;
+                fade.poseYRot = yRot;
+                fade.poseZRot = zRot;
+                if (withPosition) {
+                    fade.poseX = x;
+                    fade.poseY = y;
+                    fade.poseZ = z;
+                }
+                fade.posed = true;
+                fade.weight = fade.sourceWeight;
+            } else if (posed) {
+                fade.selfBlended = false;
+                fade.handover = 1f;
                 if (withPosition != fade.blendsPosition) {
                     // The pose started or stopped driving position, so the frozen values for the
                     // channels that just changed mean nothing: start over from the live animation.
@@ -328,7 +376,16 @@ public final class PoseInterpolator {
                     fade.poseZ = z;
                 }
                 fade.posed = true;
+            } else if (fade.posed && fade.selfBlended) {
+                // A self-blending source let go. Its last pose and weight are exactly what is on
+                // screen, over the live animation, so the fade simply carries on from there. Freezing
+                // the output instead would pin the part to a stale frame while the pack keeps moving,
+                // and restart it at full weight - a visible jump when the source was nearly out.
+                fade.selfBlended = false;
+                fade.posed = false;
             } else if (fade.posed) {
+                fade.selfBlended = false;
+                fade.handover = 1f;
                 // Let go of. What is on screen becomes the target — the fade may have been part
                 // way in, and jumping to the full pose to fade out of it would be a snap of its
                 // own — and the weight runs back down into the pack's animation.
@@ -343,13 +400,26 @@ public final class PoseInterpolator {
                 fade.posed = false;
             }
             float step = 1f - (float) Math.exp(-frameSeconds / TAU_SECONDS);
-            fade.weight += ((fade.posed ? 1f : 0f) - fade.weight) * step;
+            if (!posed || Float.isNaN(fade.sourceWeight)) {
+                fade.weight += ((fade.posed ? 1f : 0f) - fade.weight) * step;
+            }
+            if (fade.handover < 1f) {
+                fade.handover += (1f - fade.handover) * step;
+                if (fade.handover > 1f - DONE_WEIGHT) {
+                    fade.handover = 1f;
+                }
+            }
         }
 
         float weight = fade.weight;
         fade.outXRot = lerpAngle(fade.baseIsLive ? part.xRot : fade.baseXRot, fade.poseXRot, weight);
         fade.outYRot = lerpAngle(fade.baseIsLive ? part.yRot : fade.baseYRot, fade.poseYRot, weight);
         fade.outZRot = lerpAngle(fade.baseIsLive ? part.zRot : fade.baseZRot, fade.poseZRot, weight);
+        if (fade.handover < 1f) {
+            fade.outXRot = lerpAngle(fade.handoverXRot, fade.outXRot, fade.handover);
+            fade.outYRot = lerpAngle(fade.handoverYRot, fade.outYRot, fade.handover);
+            fade.outZRot = lerpAngle(fade.handoverZRot, fade.outZRot, fade.handover);
+        }
         part.xRot = fade.outXRot;
         part.yRot = fade.outYRot;
         part.zRot = fade.outZRot;
@@ -358,6 +428,11 @@ public final class PoseInterpolator {
             fade.outX = lerp(fade.baseIsLive ? part.x : fade.baseX, fade.poseX, weight);
             fade.outY = lerp(fade.baseIsLive ? part.y : fade.baseY, fade.poseY, weight);
             fade.outZ = lerp(fade.baseIsLive ? part.z : fade.baseZ, fade.poseZ, weight);
+            if (fade.handover < 1f) {
+                fade.outX = lerp(fade.handoverX, fade.outX, fade.handover);
+                fade.outY = lerp(fade.handoverY, fade.outY, fade.handover);
+                fade.outZ = lerp(fade.handoverZ, fade.outZ, fade.handover);
+            }
             part.x = fade.outX;
             part.y = fade.outY;
             part.z = fade.outZ;
@@ -450,5 +525,13 @@ public final class PoseInterpolator {
         boolean blendsPosition;
         float weight;
         long frame = -1L;
+        /** The weight a self-blending source handed over this frame, or NaN when the core fades. */
+        float sourceWeight = Float.NaN;
+        /** Whether the pose on this part came from a self-blending source last frame. */
+        boolean selfBlended;
+        /** What was on screen when a self-blending source took the part from another pose. */
+        float handoverXRot, handoverYRot, handoverZRot, handoverX, handoverY, handoverZ;
+        /** How far that takeover has got; 1 when there is none. */
+        float handover = 1f;
     }
 }
