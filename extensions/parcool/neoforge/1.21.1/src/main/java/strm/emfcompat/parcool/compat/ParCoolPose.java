@@ -8,6 +8,8 @@ import strm.emfcompat.core.PoseManager;
 import strm.emfcompat.core.PoseSnapshot;
 import strm.emfcompat.parcool.EMFCompatParCoolMod;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -71,6 +73,28 @@ public final class ParCoolPose {
      * the shoulders - so a rotation-only capture would leave them hanging at EMF's pivots.
      */
     public static void capture(Player player, PlayerModel<?> model, Set<Part> owned) {
+        capture(player, model, owned, null, 1f);
+    }
+
+    /**
+     * Writes the pose ParCool is heading for onto a part that has just been reset to its default
+     * pose, i.e. the pose at full weight, before ParCool blended it with anything.
+     */
+    @FunctionalInterface
+    public interface Target {
+        void pose(Part part, ModelPart modelPart);
+    }
+
+    /**
+     * Captures ParCool's own target for each owned part together with its blend factor, so the
+     * core blends the move over the resource pack's animation exactly as ParCool eases it in and
+     * out - rather than over the vanilla pose ParCool itself blends from.
+     *
+     * @param target null to take the model as ParCool left it, at full weight
+     * @param weight ParCool's blend factor for this frame, 0 to 1
+     */
+    public static void capture(Player player, PlayerModel<?> model, Set<Part> owned,
+                               @Nullable Target target, float weight) {
         UUID uuid = player.getUUID();
 
         if (!EMFCompatParCoolMod.isEnabled() || owned.isEmpty()) {
@@ -90,9 +114,19 @@ public final class ParCoolPose {
                 continue;
             }
             ModelPart modelPart = modelPart(model, part);
-            if (modelPart != null) {
-                parts.put(PART_NAMES.get(part), new PoseSnapshot(modelPart));
+            if (modelPart == null) {
+                continue;
             }
+            if (target == null) {
+                parts.put(PART_NAMES.get(part), new PoseSnapshot(modelPart));
+                continue;
+            }
+            // Work out the target on the model itself, then put ParCool's frame back untouched.
+            PoseSnapshot asParCoolLeftIt = new PoseSnapshot(modelPart);
+            modelPart.resetPose();
+            target.pose(part, modelPart);
+            parts.put(PART_NAMES.get(part), new PoseSnapshot(modelPart).blended(weight));
+            asParCoolLeftIt.apply(modelPart);
         }
 
         if (parts.isEmpty()) {

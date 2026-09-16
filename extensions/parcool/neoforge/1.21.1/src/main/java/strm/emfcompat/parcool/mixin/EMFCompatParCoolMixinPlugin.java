@@ -38,7 +38,7 @@ public class EMFCompatParCoolMixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.equals("strm.emfcompat.parcool.mixin.ParCool3AnimationMixin")) {
             return parCool3Loaded;
         }
-        if (mixinClassName.equals("strm.emfcompat.parcool.mixin.ParCool4PlayerModelMixin")) {
+        if (mixinClassName.startsWith("strm.emfcompat.parcool.mixin.ParCool4")) {
             return parCool4Loaded;
         }
         return true;

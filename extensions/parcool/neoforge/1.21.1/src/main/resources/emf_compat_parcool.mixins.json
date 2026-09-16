@@ -7,7 +7,14 @@
   "mixins": [],
   "client": [
     "ParCool3AnimationMixin",
-    "ParCool4PlayerModelMixin"
+    "ParCool4PlayerModelMixin",
+    "ParCool4AnimatorAccessor",
+    "ParCool4ProcessorAccessor",
+    "ParCool4WorkingEntryAccessor",
+    "ParCool4BodyLeanMixin",
+    "ParCool4TransformMixin",
+    "ParCool4PackFilterMixin",
+    "ParCool4ModelPoseMixin"
   ],
   "injectors": {
     "defaultRequire": 1

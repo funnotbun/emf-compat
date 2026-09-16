@@ -1,0 +1,360 @@
+package strm.emfcompat.parcool.compat;
+
+import com.alrex.parcool.common.action.ParCoolActions;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import strm.emfcompat.parcool.EMFCompatParCoolMod;
+import strm.emfcompat.parcool.mixin.ParCool4AnimatorAccessor;
+import strm.emfcompat.parcool.mixin.ParCool4ProcessorAccessor;
+import strm.emfcompat.parcool.mixin.ParCool4WorkingEntryAccessor;
+import com.alrex.parcool.client.animation.system.PlayerAnimator;
+import net.minecraft.client.player.AbstractClientPlayer;
+import traben.entity_model_features.EMFAnimationApi;
+import traben.entity_model_features.models.animation.state.EMFEntityRenderState;
+import traben.entity_model_features.models.animation.state.EMFState;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+/**
+ * ParCool 4 state handed to resource packs as EMF animation variables, so a pack can animate
+ * parkour moves itself, in its own procedural style, instead of the addon replaying ParCool's
+ * keyframed poses over it.
+ *
+ * <ul>
+ *     <li>{@code parcool_fast_run} - 1 while ParCool's fast run is playing, else 0</li>
+ *     <li>{@code parcool_charge} - how far a charge jump is charged, 0 to 1</li>
+ *     <li>{@code parcool_charge_jump} - 1 while the jump out of a charge is playing, else 0</li>
+ *     <li>{@code parcool_vault} - progress through a vault, 0 to 1; 0 when not vaulting</li>
+ *     <li>{@code parcool_vault_side} - -1 vaulting to the left, 1 to the right, 0 straight over</li>
+ *     <li>{@code parcool_hang} - 1 while hanging from a ledge</li>
+ *     <li>{@code parcool_hang_wall} - 1 while hanging with the feet against the wall</li>
+ *     <li>{@code parcool_hang_left_to_wall}, {@code parcool_hang_right_to_wall},
+ *     {@code parcool_hang_back_to_wall} - how far a player hanging with the feet on the wall has
+ *     turned away from it, 0 to 1, as ParCool blends its look-around poses</li>
+ *     <li>{@code parcool_rarm_grip}/{@code parcool_larm_grip} - 1 while that hand holds the ledge, 0
+ *     while it hangs free: turned side-on, ParCool holds on with the hand nearer the wall. Eased.</li>
+ *     <li>{@code parcool_rarm_hang_rx}/{@code _ry}/{@code _lift} (and the left ones) - the arm as a
+ *     pack would draw it hanging, everything below blended: on the ledge by IK, loose, or between</li>
+ *     <li>{@code parcool_hang_catch} - how far to move the body down (pixels, negative up) as the
+ *     ledge is caught: a short spring, stronger after a longer fall; the IK arm angles below are
+ *     worked out from shoulders moved by it, so the hands stay on the ledge</li>
+ *     <li>{@code parcool_rarm_ik}/{@code parcool_larm_ik} - 1 while hanging with a ledge top found
+ *     for that hand; then {@code parcool_rarm_ik_rx}/{@code _ry} (and the left ones) are the arm
+ *     rotations, in radians, that put the hand on the ledge, {@code parcool_rarm_ik_reach} the
+ *     shoulder-to-ledge distance over the arm's length, and {@code parcool_rarm_ik_lift} how many
+ *     pixels to raise the shoulder for those rotations to land the hand</li>
+ *     <li>{@code parcool_climb} - progress climbing up from a ledge, 0 to 1; 0 when not climbing</li>
+ * </ul>
+ *
+ * <p>A pack opts in by reading the variables: EMF only evaluates what an animation uses, so a read
+ * is proof that this player's model animates that move itself. Each move is opted into on its own
+ * - a pack that only animates the fast run keeps ParCool's vault - and only while the reads keep
+ * coming does the addon stop capturing ParCool's pose and its torso lean. Without such a pack
+ * nothing changes.</p>
+ */
+public final class ParCoolPackVariables {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("emf_compat");
+
+    /** The move each ParCool animation belongs to; a pack reading that move's variables takes it. */
+    private static final Map<String, String> MOVE_OF_ANIMATION = Map.of(
+            "parcool:fast_run", "fast_run",
+            "parcool:jump_charging", "charge",
+            "parcool:charge_jump", "charge",
+            "parcool:vault_forward", "vault",
+            "parcool:vault_side", "vault",
+            "parcool:hang_on", "hang",
+            "parcool:climb_up", "climb",
+            "parcool:climb_up_jump", "climb");
+
+    /**
+     * Moves whose torso transform is only a lean, which a pack animating the move replaces with its
+     * own. Elsewhere ParCool's torso transform also turns the body - a hang faces the wall whichever
+     * way the player looks - so it stays even when the pack animates the limbs.
+     */
+    private static final Set<String> LEAN_ONLY_MOVES = Set.of("fast_run", "charge");
+
+    /** A pack read older than this no longer counts: the pack was switched off or reloaded. */
+    private static final long PACK_READ_TIMEOUT_NANOS = 500_000_000L;
+
+    /**
+     * Set around {@code PlayerRenderer.setupRotations}, so ParCool's renderer hook gets the torso
+     * transform without pack-played leans. Render thread only.
+     */
+    public static boolean settingUpRotations;
+
+    /** When each player's model last read each move's variables. Render thread only. */
+    private static final Map<UUID, Map<String, Long>> LAST_READ = new HashMap<>();
+
+    private ParCoolPackVariables() {
+    }
+
+    @FunctionalInterface
+    private interface Value {
+        float of(AbstractClientPlayer player) throws Exception;
+    }
+
+    public static void register() {
+        register("parcool_fast_run", "fast_run", "1 while ParCool's fast run is playing",
+                player -> isRunning(player, "parcool:fast_run") ? 1f : 0f);
+        register("parcool_charge", "charge", "How far a ParCool charge jump is charged, 0 to 1",
+                player -> (Float) invoke(action(player, "CHARGE_JUMP"), "getChargeProgress", partialTick()));
+        register("parcool_charge_jump", "charge", "1 while the jump out of a ParCool charge is playing",
+                player -> isRunning(player, "parcool:charge_jump") ? 1f : 0f);
+        register("parcool_vault", "vault", "Progress through a ParCool vault, 0 to 1",
+                player -> {
+                    Object vault = action(player, "VAULT");
+                    Byte duration = (Byte) property(vault, "propertyDuration");
+                    return doing(vault) && duration != null && duration > 0
+                            ? Math.min(1f, (doingTick(vault) + partialTick()) / duration) : 0f;
+                });
+        register("parcool_vault_side", "vault", "-1 vaulting to the left, 1 to the right, 0 straight over",
+                player -> {
+                    Object type = property(action(player, "VAULT"), "propertyVaultType");
+                    String name = type == null ? "FORWARD" : ((Enum<?>) type).name();
+                    return name.equals("LEFT") ? -1f : name.equals("RIGHT") ? 1f : 0f;
+                });
+        register("parcool_hang", "hang", "1 while hanging from a ledge",
+                player -> doing(action(player, "HANG_ON")) ? 1f : 0f);
+        register("parcool_hang_wall", "hang", "1 while hanging with the feet against the wall",
+                player -> {
+                    Object hang = action(player, "HANG_ON");
+                    return doing(hang) && Boolean.TRUE.equals(property(hang, "propertyFullWall")) ? 1f : 0f;
+                });
+        register("parcool_hang_left_to_wall", "hang", "How far a hanging player has turned the left side to the wall, 0 to 1; ParCool then holds on with the right hand",
+                player -> hangFactor(player, "getBlendFactorLeftToWall"));
+        register("parcool_hang_right_to_wall", "hang", "How far a hanging player has turned the right side to the wall, 0 to 1; ParCool then holds on with the left hand",
+                player -> hangFactor(player, "getBlendFactorRightToWall"));
+        register("parcool_hang_back_to_wall", "hang", "How far a hanging player has turned the back to the wall, 0 to 1",
+                player -> hangFactor(player, "getBlendFactorBackToWall"));
+        register("parcool_rarm_grip", "hang", "1 while the right hand holds the ledge, 0 while it hangs free (looking away along the wall); eased",
+                player -> holds(player).right().grip());
+        register("parcool_larm_grip", "hang", "1 while the left hand holds the ledge, 0 while it hangs free (looking away along the wall); eased",
+                player -> holds(player).left().grip());
+        register("parcool_rarm_hang_rx", "hang", "Right arm x rotation while hanging, radians: on the ledge, hanging free or in between",
+                player -> holds(player).right().x());
+        register("parcool_rarm_hang_ry", "hang", "Right arm y rotation while hanging, radians; continuous, it does not wrap",
+                player -> holds(player).right().y());
+        register("parcool_rarm_hang_lift", "hang", "Pixels to raise the right shoulder while hanging",
+                player -> holds(player).right().lift());
+        register("parcool_larm_hang_rx", "hang", "Left arm x rotation while hanging, radians: on the ledge, hanging free or in between",
+                player -> holds(player).left().x());
+        register("parcool_larm_hang_ry", "hang", "Left arm y rotation while hanging, radians; continuous, it does not wrap",
+                player -> holds(player).left().y());
+        register("parcool_larm_hang_lift", "hang", "Pixels to raise the left shoulder while hanging",
+                player -> holds(player).left().lift());
+        register("parcool_hang_catch", "hang", "Body offset while catching a ledge, pixels, down positive; the ik arm angles already allow for it",
+                player -> hands(player).catchOffset());
+        register("parcool_rarm_ik", "hang", "1 while hanging with a ledge top found for the right hand, else 0",
+                player -> hands(player).rightValid() ? 1f : 0f);
+        register("parcool_larm_ik", "hang", "1 while hanging with a ledge top found for the left hand, else 0",
+                player -> hands(player).leftValid() ? 1f : 0f);
+        register("parcool_rarm_ik_rx", "hang", "Right arm x rotation that puts the hand on the ledge, radians",
+                player -> hands(player).rightX());
+        register("parcool_rarm_ik_ry", "hang", "Right arm y rotation that puts the hand on the ledge, radians",
+                player -> hands(player).rightY());
+        register("parcool_rarm_ik_reach", "hang", "Shoulder to ledge over the arm's length; above 1 the hand falls short",
+                player -> hands(player).rightReach());
+        register("parcool_rarm_ik_lift", "hang", "How far to raise the right shoulder for the hand to reach, pixels",
+                player -> hands(player).rightLift());
+        register("parcool_larm_ik_rx", "hang", "Left arm x rotation that puts the hand on the ledge, radians",
+                player -> hands(player).leftX());
+        register("parcool_larm_ik_ry", "hang", "Left arm y rotation that puts the hand on the ledge, radians",
+                player -> hands(player).leftY());
+        register("parcool_larm_ik_reach", "hang", "Shoulder to ledge over the arm's length; above 1 the hand falls short",
+                player -> hands(player).leftReach());
+        register("parcool_larm_ik_lift", "hang", "How far to raise the left shoulder for the hand to reach, pixels",
+                player -> hands(player).leftLift());
+        register("parcool_climb", "climb", "Progress climbing up from a ledge, 0 to 1",
+                player -> {
+                    Object climb = action(player, "CLIMB_UP");
+                    int duration = (Integer) field(climb, "duration");
+                    return doing(climb) && duration > 0
+                            ? Math.min(1f, (doingTick(climb) + partialTick()) / duration) : 0f;
+                });
+    }
+
+    /** How a resource pack plays one of ParCool's running animations; see {@link #packPlays}. */
+    public enum PackPlay {
+        /** ParCool plays it. */
+        NO,
+        /** The pack plays it, and ParCool's torso transform for it is only a lean the pack replaces. */
+        LEAN,
+        /** The pack plays the limbs, but ParCool's torso transform also turns the body, and stays. */
+        TURN
+    }
+
+    /** Whether a pack plays this running ParCool animation (an {@code AnimationProcessor} entry). */
+    public static PackPlay packPlays(AbstractClientPlayer player, Object entry) {
+        if (!EMFCompatParCoolMod.isPackAnimations()) return PackPlay.NO;
+        Map<String, Long> reads = LAST_READ.get(player.getUUID());
+        if (reads == null) return PackPlay.NO;
+        String id = ((ParCool4WorkingEntryAccessor) entry).emfcompat$registration().location().toString();
+        String move = MOVE_OF_ANIMATION.get(id);
+        Long read = move == null ? null : reads.get(move);
+        if (read == null || System.nanoTime() - read > PACK_READ_TIMEOUT_NANOS) return PackPlay.NO;
+        return LEAN_ONLY_MOVES.contains(move) ? PackPlay.LEAN : PackPlay.TURN;
+    }
+
+    private static float hangFactor(AbstractClientPlayer player, String getter) throws ReflectiveOperationException {
+        Object hang = action(player, "HANG_ON");
+        if (!doing(hang)) return 0f;
+        String key = "HangOn#" + getter;
+        Method method = METHODS.get(key);
+        if (method == null) {
+            method = hang.getClass().getMethod(getter);
+            METHODS.put(key, method);
+        }
+        return (Float) method.invoke(hang);
+    }
+
+    /**
+     * How much a hand holds on, given the side-to-wall factor that frees it. ParCool sets its
+     * back-to-wall pose over the side ones, and looking straight back both sides read 1, so the back
+     * factor takes that much of the side's weight away again.
+     */
+    private static float grip(AbstractClientPlayer player, String freedBy) throws ReflectiveOperationException {
+        if (!doing(action(player, "HANG_ON"))) return 0f;
+        return 1f - hangFactor(player, freedBy) * (1f - hangFactor(player, "getBlendFactorBackToWall"));
+    }
+
+    private static ParCoolHandIK.Holds holds(AbstractClientPlayer player) throws ReflectiveOperationException {
+        Object hang = action(player, "HANG_ON");
+        if (!doing(hang)) return ParCoolHandIK.Holds.NONE;
+        return ParCoolHandIK.holds(player, (Vec3) invoke(hang, "getWallVec", partialTick()),
+                grip(player, "getBlendFactorRightToWall"), grip(player, "getBlendFactorLeftToWall"));
+    }
+
+    private static ParCoolHandIK.Arms hands(AbstractClientPlayer player) throws ReflectiveOperationException {
+        Object hang = action(player, "HANG_ON");
+        if (!doing(hang)) return ParCoolHandIK.Arms.NONE;
+        return ParCoolHandIK.arms(player, (Vec3) invoke(hang, "getWallVec", partialTick()));
+    }
+
+    private static void register(String name, String move, String explanation, Value value) {
+        try {
+            EMFAnimationApi.registerSingletonAnimationVariable(EMFCompatParCoolMod.MOD_ID, name, explanation,
+                    () -> read(move, value));
+        } catch (Throwable t) {
+            LOGGER.warn("[EMF Compat] could not register the EMF variable {}", name, t);
+        }
+    }
+
+    private static float read(String move, Value value) {
+        try {
+            AbstractClientPlayer player = current();
+            if (player == null) return 0f;
+            LAST_READ.computeIfAbsent(player.getUUID(), k -> new HashMap<>()).put(move, System.nanoTime());
+            return value.of(player);
+        } catch (Throwable t) {
+            // A throw out of an animation variable makes EMF disable the whole model's animation.
+            return 0f;
+        }
+    }
+
+    @Nullable
+    private static AbstractClientPlayer current() {
+        EMFEntityRenderState state = EMFState.state();
+        if (state == null || state.uuid() == null || Minecraft.getInstance().level == null) return null;
+        Player player = Minecraft.getInstance().level.getPlayerByUUID(state.uuid());
+        return player instanceof AbstractClientPlayer client ? client : null;
+    }
+
+    private static float partialTick() {
+        return Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
+    }
+
+    // ParCool's actions, by reflection: ParCool 3 and 4 both ship a Parkourability and this module
+    // compiles against both, so the compiler cannot be told which one to link. Lookups are cached.
+
+    private static final Map<String, Method> METHODS = new HashMap<>();
+    private static final Map<String, Field> FIELDS = new HashMap<>();
+    private static Method parkourabilityOf;
+    private static Method actionOf;
+
+    private static Object action(AbstractClientPlayer player, String entry) throws ReflectiveOperationException {
+        if (parkourabilityOf == null) {
+            Class<?> parkourability = Class.forName("com.alrex.parcool.common.Parkourability");
+            parkourabilityOf = parkourability.getMethod("get", Player.class);
+            actionOf = parkourability.getMethod("get", Class.forName("com.alrex.parcool.api.action.ActionEntry"));
+        }
+        Object parkourability = parkourabilityOf.invoke(null, player);
+        if (parkourability == null) throw new IllegalStateException("no parkourability");
+        return actionOf.invoke(parkourability, ParCoolActions.class.getField(entry).get(null));
+    }
+
+    private static Object invoke(Object target, String name, float argument) throws ReflectiveOperationException {
+        Method method = METHODS.get(target.getClass().getName() + "#" + name);
+        if (method == null) {
+            method = target.getClass().getMethod(name, float.class);
+            METHODS.put(target.getClass().getName() + "#" + name, method);
+        }
+        return method.invoke(target, argument);
+    }
+
+    private static boolean doing(Object action) throws ReflectiveOperationException {
+        Method method = METHODS.get("isDoing");
+        if (method == null) {
+            method = Class.forName("com.alrex.parcool.api.action.ContinuableAction").getMethod("isDoing");
+            METHODS.put("isDoing", method);
+        }
+        return (Boolean) method.invoke(action);
+    }
+
+    private static int doingTick(Object action) throws ReflectiveOperationException {
+        Method method = METHODS.get("getDoingTick");
+        if (method == null) {
+            method = Class.forName("com.alrex.parcool.api.action.ContinuableAction").getMethod("getDoingTick");
+            METHODS.put("getDoingTick", method);
+        }
+        return (Integer) method.invoke(action);
+    }
+
+    private static Object field(Object target, String name) throws ReflectiveOperationException {
+        String key = target.getClass().getName() + "#" + name;
+        Field field = FIELDS.get(key);
+        if (field == null) {
+            field = target.getClass().getDeclaredField(name);
+            field.setAccessible(true);
+            FIELDS.put(key, field);
+        }
+        return field.get(target);
+    }
+
+    /** The value of one of an action's synchronized properties. */
+    @Nullable
+    private static Object property(Object action, String name) throws ReflectiveOperationException {
+        Object property = field(action, name);
+        if (property == null) return null;
+        Method get = METHODS.get("SynchronizedProperty#get");
+        if (get == null) {
+            get = property.getClass().getMethod("get");
+            METHODS.put("SynchronizedProperty#get", get);
+        }
+        return get.invoke(property);
+    }
+
+    private static boolean isRunning(AbstractClientPlayer player, String id) {
+        for (Object entry : running(player)) {
+            if (((ParCool4WorkingEntryAccessor) entry).emfcompat$registration().location().toString().equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static List<?> running(AbstractClientPlayer player) {
+        return ((ParCool4ProcessorAccessor) ((ParCool4AnimatorAccessor) PlayerAnimator.get(player))
+                .emfcompat$processor()).emfcompat$animators();
+    }
+}
