@@ -60,8 +60,18 @@ public final class Driver {
     private static Script current;
     private static final Set<KeyMapping> HELD = new LinkedHashSet<>();
     private static int statusCountdown;
+    /**
+     * Yaw offset from where the player faces, pitch and distance of the orbit camera; null = off.
+     * Six values: an absolute yaw, pitch, distance and the pinned world point it orbits.
+     */
+    private static volatile float[] orbit;
 
     private Driver() {
+    }
+
+    /** Read by the camera mixin every frame. */
+    public static float[] orbit() {
+        return orbit;
     }
 
     public static boolean enabled() {
@@ -215,6 +225,28 @@ public final class Driver {
                     case "front" -> CameraType.THIRD_PERSON_FRONT;
                     default -> throw new IllegalArgumentException("camera: first, back or front");
                 });
+                case "orbit" -> {
+                    // [yawOffset, pitch, distance] around the player (90 = its left side), or false.
+                    // A fourth element true pins the camera where it is now, in the world: it stops
+                    // following the player, so how the model moves against the scenery shows.
+                    if (v.isJsonArray()) {
+                        JsonArray a = v.getAsJsonArray();
+                        float distance = a.size() > 2 ? a.get(2).getAsFloat() : 4f;
+                        if (a.size() > 3 && a.get(3).getAsBoolean()) {
+                            LocalPlayer p = requirePlayer(player);
+                            orbit = new float[]{p.getYRot() + a.get(0).getAsFloat(), a.get(1).getAsFloat(), distance,
+                                    (float) p.getX(), (float) p.getEyeY(), (float) p.getZ()};
+                        } else {
+                            orbit = new float[]{a.get(0).getAsFloat(), a.get(1).getAsFloat(), distance};
+                        }
+                        if (mc.options.getCameraType().isFirstPerson()) {
+                            mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+                        }
+                    } else {
+                        orbit = null;
+                    }
+                }
+                case "parcool" -> result.add("parcool", parcool(mc));
                 case "look" -> {
                     JsonArray a = v.getAsJsonArray();
                     float yaw = a.get(0).getAsFloat();
@@ -640,12 +672,83 @@ public final class Driver {
                 Field posed = f.getClass().getDeclaredField("posed");
                 weight.setAccessible(true);
                 posed.setAccessible(true);
-                parts.addProperty(String.valueOf(e.getKey()),
-                        String.format(java.util.Locale.ROOT, "%.2f %s", weight.getFloat(f), posed.getBoolean(f) ? "in" : "out"));
+                String text = String.format(java.util.Locale.ROOT, "%.2f %s", weight.getFloat(f), posed.getBoolean(f) ? "in" : "out");
+                try {
+                    // Newer cores: a self-blended pose taking a part over from another one.
+                    Field handover = f.getClass().getDeclaredField("handover");
+                    handover.setAccessible(true);
+                    if (handover.getFloat(f) < 1f) {
+                        text += String.format(java.util.Locale.ROOT, " handover %.2f", handover.getFloat(f));
+                    }
+                    Field self = f.getClass().getDeclaredField("selfBlended");
+                    self.setAccessible(true);
+                    if (self.getBoolean(f)) {
+                        text += " self";
+                    }
+                } catch (NoSuchFieldException ignored) {
+                    // an older core
+                }
+                parts.addProperty(String.valueOf(e.getKey()), text);
             }
             out.add("parts", parts);
         }
         return out;
+    }
+
+    /**
+     * What ParCool 4 is animating on the local player: the running animation sets (newest last),
+     * and the transform it hands the model this frame — overwriting or blending, the blend factor
+     * and the parts it drives. By reflection, like the core probes.
+     */
+    private static JsonObject parcool(Minecraft mc) throws ReflectiveOperationException {
+        LocalPlayer p = requirePlayer(mc.player);
+        JsonObject out = new JsonObject();
+        Object animator = call(p, "getParCoolPlayerAnimator");
+        Object processor = read(animator, "animationProcessor");
+        JsonArray running = new JsonArray();
+        for (Object entry : (List<?>) read(processor, "animators")) {
+            running.add(String.valueOf(call(call(entry, "registration"), "location")));
+        }
+        out.add("running", running);
+        Object transform = call(animator, "getCurrentTransformation");
+        if (transform != null) {
+            out.addProperty("overwriting", (Boolean) call(transform, "isOverwriting"));
+            out.addProperty("blend", Math.round((Float) call(transform, "blendFactor") * 100f) / 100f);
+            Map<?, ?> parts = (Map<?, ?>) call(call(transform, "transformation"), "transforms");
+            JsonArray names = new JsonArray();
+            parts.keySet().forEach(k -> names.add(String.valueOf(k)));
+            out.add("parts", names);
+            for (Map.Entry<?, ?> part : parts.entrySet()) {
+                if (!String.valueOf(part.getKey()).equals("BODY")) continue;
+                // The torso transform ParCool puts on the whole pose stack: translation and rotation.
+                out.addProperty("bodyTranslation", String.valueOf(call(part.getValue(), "translation")));
+                Object q = call(part.getValue(), "rotation");
+                org.joml.Vector3f euler = new org.joml.Quaternionf((org.joml.Quaternionfc) q).getEulerAnglesYXZ(new org.joml.Vector3f());
+                out.addProperty("bodyEulerYXZdeg", String.format(Locale.ROOT, "x=%.1f y=%.1f z=%.1f",
+                        Math.toDegrees(euler.x), Math.toDegrees(euler.y), Math.toDegrees(euler.z)));
+            }
+        }
+        return out;
+    }
+
+    /** A no-argument method of a class another module keeps private. */
+    private static Object call(Object target, String name) throws ReflectiveOperationException {
+        for (Class<?> c = target.getClass(); c != null; c = c.getSuperclass()) {
+            try {
+                Method m = c.getDeclaredMethod(name);
+                m.setAccessible(true);
+                return m.invoke(target);
+            } catch (NoSuchMethodException ignored) {
+                // keep looking up the hierarchy
+            }
+        }
+        throw new NoSuchMethodException(target.getClass().getName() + "." + name);
+    }
+
+    private static Object read(Object target, String name) throws ReflectiveOperationException {
+        Field f = target.getClass().getDeclaredField(name);
+        f.setAccessible(true);
+        return f.get(target);
     }
 
     private static String item(ItemStack stack) {

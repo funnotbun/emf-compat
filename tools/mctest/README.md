@@ -57,6 +57,10 @@ python3 tools/mctest/mctest.py steps Test "$(cat tools/mctest/scenarios/worn-ite
 | `chain-conveyor-scene.json` / `-26.json` | Two Create chain conveyors joined by a chain, the player under it with a wrench. Connections are written again once both blocks exist — Create drops a connection to a block that is not there yet. |
 | `chain-conveyor-shots.json` | Grabs the chain (the crosshair must be on the strand itself: z 337.3, straight up) and shoots the hang from front and back. |
 | `packs-vanilla / packs-fa / packs-fa-player.json` | The three pack configurations to shoot it in. |
+| `parcool-course.json` | NeoForge 1.21.1 `Test`, world `New World2`: unlocks every ParCool 4 action, builds a runway with a low wall (vault), a 4-high wall (hang, climb up) and a long wall. Launch with `enable=["ParCool-1.21.1", "emf_compat_parcool"]` and `disable=["hackersandslashers-2.0", "emf_compat_hackers_and_slashers"]` (Better Combat does not load next to Hackers 'n Slashers). |
+| `parcool-moves.json` | Fast run in/hold/out with fade probes, vault, hang and climb up, crawl, slide, dodges, charge jump — each with the `parcool` probe. |
+| `parcool-pack.json` | The ParCool animation pack's moves with the pack on: fast run and charge jump (`fade` shows no pose sources while the pack animates them), a vault that stays ParCool's pose, then the hang - a drop onto the wall (ParCool slides down first, on the same key), a shuffle, and a free ledge. Build the pack first (`extensions/parcool/resourcepack/build_pack.py`), launch with WATUT disabled, hide the GUI and enable it above FA+Player with a `packs` step. |
+| `parcool-combos.json` | The same course with other addons: a Better Combat swing during a fast run (add `bettercombat-neoforge`, `emf_compat_better_combat` to `enable`), an Immersive Melodies flute while running and crawling, NEA eating into a run, WATUT typing, the JustExpressions face during a charge jump. |
 
 For contact sheets and images outside MCP, import `server.py`:
 `uv run --with "mcp<2" --with pillow python -c "import sys; sys.path.insert(0,'tools/mctest'); import server; ..."`.
@@ -81,8 +85,15 @@ A script is a list of steps, run in order on the client thread. `wait` counts cl
 {"config": {"core.smoothPoseTransitions": false}}   core options, in memory only
 {"packs": ["FreshAnimations", "FA+Player"]}        resource packs, in order; the rest off
 {"model": "villager"} {"model": {"entity": "player", "depth": 3}}   the renderer's model tree
-{"burst": {"count": 8, "every": 1, "name": "atk", "fade": true}}   expanded by server.py
+{"burst": {"count": 8, "every": 1, "name": "atk", "fade": true}}   expanded by server.py and the CLI
+{"orbit": [90, 10, 5]}          camera at [yaw offset, pitch, distance] around the player; false = off
+{"orbit": [0, 80, 3, true]}     the same, pinned in the world where the player is now (stops following)
+{"parcool": true}               ParCool 4: running animations, overwriting/blend factor, driven parts
 ```
+
+`orbit` and `parcool` exist in the NeoForge 1.21.1 driver only (the orbit is a `Camera.setup` mixin,
+the driver's only one). The yaw offset is relative to where the player faces - `0` is behind it, `180` in front - so `90` stays side-on
+while it runs and turns — the only way to see a lean, since `front`/`back` look along the movement.
 
 The Create hat fix has its own switch, so one run can shoot both states without a reload:
 `{"config": {"create.hats": false}}` → screenshot → `{"config": {"create.hats": true}}` → screenshot.
@@ -169,6 +180,19 @@ metadata, and a copy of `Driver.java`. `mctest.py` finds it by the folder name
 - **Left click on a block in reach is mining, not attacking.** Better Combat plays nothing and
   vanilla just swings. Check `state.target`; aim up (`{"look": [180, -60]}`) or clear the area
   (`fill ~-5 ~ ~-5 ~5 ~3 ~5 air`). Crouching lowers the eyes onto grass.
+- **ParCool 4 needs its skill tree unlocked** (`parcool action unlock @s all`), or no action starts
+  and nothing tells you why. Keys: crawl `key.parcool.crawl` (C), hang `key.parcool.hang` (right
+  mouse), dodge/breakfall/side wall run `key.parcool.dodge` (R). A hang only catches when the top of
+  the hitbox is within ~0.2 of the ledge and the wall within 0.15: for a wall topping out at y=-56,
+  `tp @s <x> -57.8 <wall face + 0.35>` while holding the hang key. A chat screen releases ParCool's
+  own key state, so a hang ends when chat opens.
+- **A pack that fails EMF's ASM compile is dropped whole**, and `latest.log` only says
+  "Failure parsing ASM". The reason goes to stdout: read `run/mctest/<profile>/mctest/launcher.out`
+  (e.g. "a variable was used both as a number and a boolean" for `!var.x`). `launch --emf-log`
+  also turns on EMF's model-creation and ASM logs in the sandbox's config copy.
+- **WATUT marks a scripted player as AFK** ("zZ") and bows its head; shoot animations with
+  `disable=["watut", "emf_compat_watut"]`. A pack switch while the chat renders can crash vanilla's
+  font upload - hide the GUI first.
 - **The `front` camera** puts the camera in the direction the player looks, so on screen the player
   faces you and looks at whatever is *behind* them. The camera also collides with a block it runs
   into — a chest two blocks ahead fills the frame with a close-up.

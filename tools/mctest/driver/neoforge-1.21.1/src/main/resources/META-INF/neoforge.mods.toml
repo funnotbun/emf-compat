@@ -9,3 +9,6 @@ displayName="mctest driver"
 description='''
 Development-only test driver for EMF Compat. Inert unless the game was started with -Dmctest.
 '''
+
+[[mixins]]
+config="mctest_driver.mixins.json"

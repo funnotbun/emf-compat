@@ -10,6 +10,7 @@ Registered in the project's .mcp.json; run by hand with ``uv run tools/mctest/se
 from __future__ import annotations
 
 import io
+import functools
 import json
 import sys
 import time
@@ -91,7 +92,23 @@ def _expand(steps: list[dict], prefix: str) -> list[dict]:
     return out
 
 
-@mcp.tool()
+def tool(fn):
+    """``@mcp.tool()`` that answers a launcher ``SystemExit`` as a tool error.
+
+    mctest.py reports bad input the CLI way, with SystemExit (a profile without the mod ``enable``
+    names, a game that is not running). That is a BaseException: FastMCP does not catch it, and it
+    took the whole server down instead of failing the one call.
+    """
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except SystemExit as e:
+            raise RuntimeError(str(e)) from None
+    return mcp.tool()(wrapper)
+
+
+@tool
 def mc_profiles() -> str:
     """Lists the Modrinth profiles with loader, version, memory, and whether a test driver exists."""
     lines = []
@@ -103,7 +120,7 @@ def mc_profiles() -> str:
     return "\n".join(lines)
 
 
-@mcp.tool()
+@tool
 def mc_launch(profile: str, world: str | None = None, fresh_world: bool = False,
               wait: bool = True, timeout: int = 300, enable: list[str] | None = None,
               disable: list[str] | None = None) -> str:
@@ -122,7 +139,7 @@ def mc_launch(profile: str, world: str | None = None, fresh_world: bool = False,
     return json.dumps(report, indent=1)
 
 
-@mcp.tool()
+@tool
 def mc_steps(profile: str, steps: list[dict], crop: float = 0.45, size: int = 640,
              sheet: bool = True, columns: int = 4) -> list:
     """Runs a script in game and returns the results plus the screenshots it took.
@@ -134,6 +151,8 @@ def mc_steps(profile: str, steps: list[dict], crop: float = 0.45, size: int = 64
           keys: forward back left right jump sneak sprint attack use drop swap inventory
       {"click": "attack"}  {"slot": 0}  {"look": [yaw, pitch]}
       {"camera": "first|back|front"}  {"hideGui": true}  {"closeScreen": true}
+  {"orbit": [yawOffset, pitch, distance]} / {"orbit": false}  - side-on camera (NeoForge 1.21.1)
+  {"parcool": true}  - ParCool 4 animations, blend factor and driven parts (NeoForge 1.21.1)
       {"wait": 10}  {"state": true}  {"log": "marker in latest.log"}
       {"screenshot": "name"}
       {"burst": {"count": 8, "every": 1, "name": "attack", "fade": true}}  - screenshots every
@@ -173,25 +192,25 @@ def mc_steps(profile: str, steps: list[dict], crop: float = 0.45, size: int = 64
     return out
 
 
-@mcp.tool()
+@tool
 def mc_screenshot(profile: str, crop: float = 1.0, size: int = 1024) -> list:
     """Takes one screenshot of the current frame (whole frame by default)."""
     return mc_steps(profile, [{"screenshot": "shot"}], crop=crop, size=size, sheet=False)
 
 
-@mcp.tool()
+@tool
 def mc_status(profile: str) -> str:
     """Whether the game runs, and what the driver last reported (in world, screen, fps)."""
     return json.dumps(mctest.status(profile), indent=1)
 
 
-@mcp.tool()
+@tool
 def mc_log(profile: str, lines: int = 80, grep: str | None = None) -> str:
     """Tail of the sandbox's latest.log, optionally filtered by a regex."""
     return mctest.log_tail(profile, lines, grep)
 
 
-@mcp.tool()
+@tool
 def mc_stop(profile: str) -> str:
     """Stops the game started by mc_launch."""
     return mctest.stop(profile)

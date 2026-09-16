@@ -168,7 +168,7 @@ def _patch_options(path: Path) -> None:
 
 def prepare_sandbox(profile: Profile, world: str | None, use_project_jars: bool = True,
                     fresh_world: bool = False, enable: list[str] | None = None,
-                    disable: list[str] | None = None) -> dict:
+                    disable: list[str] | None = None, emf_log: bool = False) -> dict:
     src, dst = profile.path, profile.sandbox
     dst.mkdir(parents=True, exist_ok=True)
     report = {"sandbox": str(dst), "swapped": [], "enabled": [], "disabled": [], "driver": None,
@@ -231,6 +231,15 @@ def prepare_sandbox(profile: Profile, world: str | None, use_project_jars: bool 
             link.unlink() if link.is_symlink() else shutil.rmtree(link)
         if (src / name).is_dir():
             link.symlink_to(src / name)
+    if emf_log:
+        # EMF's own model-creation and ASM logs name the expression a pack fails on; they are only
+        # read at startup, so they go into the sandbox's copy of the config before launch.
+        emf_config = dst / "config" / "entity_model_features.json"
+        if emf_config.exists():
+            data = json.loads(emf_config.read_text())
+            data["logModelCreationData"] = True
+            data["logASM"] = True
+            emf_config.write_text(json.dumps(data, indent=2))
     for name in ["options.txt", "servers.dat"]:
         if (src / name).exists():
             shutil.copy2(src / name, dst / name)
@@ -392,11 +401,11 @@ def running_pid(profile: Profile) -> int | None:
 
 def launch(name: str, world: str | None = None, width: int = 1280, height: int = 720,
            use_project_jars: bool = True, fresh_world: bool = False,
-           enable: list[str] | None = None, disable: list[str] | None = None) -> dict:
+           enable: list[str] | None = None, disable: list[str] | None = None, emf_log: bool = False) -> dict:
     profile = get_profile(name)
     if running_pid(profile):
         raise SystemExit(f"{profile.name} is already running (pid {running_pid(profile)}); stop it first")
-    report = prepare_sandbox(profile, world, use_project_jars, fresh_world, enable, disable)
+    report = prepare_sandbox(profile, world, use_project_jars, fresh_world, enable, disable, emf_log)
     cmd = build_command(profile, world, width, height)
     # The child keeps its own handle on the log, so the parent's can close with the block.
     with open(profile.sandbox / "mctest" / "launcher.out", "w") as log:
@@ -458,6 +467,28 @@ def wait_ready(name: str, timeout: float = 300.0) -> dict:
                     "log_tail": log_tail(name, 30, r"warn|error|exception")}
         time.sleep(1.0)
     return {"ready": False, "reason": "timeout", "status": status(name)}
+
+
+def expand_bursts(steps: list[dict]) -> list[dict]:
+    """Turns ``{"burst": {...}}`` into screenshots (and fade probes) with waits between them.
+
+    The driver has no burst step; server.py expands it the same way, so a saved scenario runs
+    unchanged from MCP and from this CLI.
+    """
+    out = []
+    for step in steps:
+        if "burst" not in step:
+            out.append(step)
+            continue
+        b = step["burst"]
+        count, every, name = int(b.get("count", 6)), int(b.get("every", 1)), b.get("name", "burst")
+        for i in range(count):
+            out.append({"screenshot": f"{name}_{i:02d}"})
+            if b.get("fade"):
+                out.append({"fade": True})
+            if i < count - 1:
+                out.append({"wait": every})
+    return out
 
 
 def run_steps(name: str, steps: list[dict], timeout: float = 120.0) -> dict:
@@ -531,11 +562,12 @@ def _main(argv: list[str]) -> None:
         enable = rest[rest.index("--enable") + 1].split(",") if "--enable" in rest else None
         disable = rest[rest.index("--disable") + 1].split(",") if "--disable" in rest else None
         print(json.dumps(launch(rest[0], world, fresh_world="--fresh-world" in rest,
-                                enable=enable, disable=disable), indent=1))
+                                enable=enable, disable=disable, emf_log="--emf-log" in rest), indent=1))
     elif cmd == "wait":
         print(json.dumps(wait_ready(rest[0]), indent=1))
     elif cmd == "steps":
-        print(json.dumps(run_steps(rest[0], json.loads(rest[1])), indent=1))
+        steps = expand_bursts(json.loads(rest[1]))
+        print(json.dumps(run_steps(rest[0], steps, timeout=max(120.0, len(steps) * 2.0)), indent=1))
     elif cmd == "status":
         print(json.dumps(status(rest[0]), indent=1))
     elif cmd == "log":
