@@ -9,7 +9,8 @@ from the FA+Player the user already has:
 
     python3 extensions/parcool/resourcepack/build_pack.py <FA+Player zip or folder> <resourcepacks dir>
 
-The cape is patched too, to follow the torso while ParCool poses it (see patch_cape).
+The cape is patched too, to follow the torso while ParCool poses it (see patch_cape), and FA's
+variables, so a ParCool pole climb plays FA's ladder climb (see patch_variables).
 
 The result is a folder pack, "EMF Compat ParCool Animations", to be placed above FA+Player.
 """
@@ -112,6 +113,27 @@ def patch_cape(jem_text: str) -> str:
     return json.dumps(jem, indent=1)
 
 
+VARIABLES = "a_player_variables.jpm"
+CLIMBING = "(is_climbing || parcool_pole_climb>0)"
+
+
+def patch_variables(jpm_text: str) -> str:
+    """FA climbs a ladder only while vanilla says the player is climbing, and a chain is no ladder to
+    vanilla. ParCool's pole climb counts as climbing too, so FA plays its own ladder climb for it
+    (reading ``parcool_pole_climb`` is also what hands the move over from ParCool)."""
+    jpm = json.loads(jpm_text)
+    count = 0
+    for block in jpm["animations"]:
+        for key, expr in block.items():
+            new = re.sub(r"\bis_climbing\b", CLIMBING, expr)
+            if new != expr:
+                block[key] = new
+                count += 1
+    if count == 0:
+        raise SystemExit("FA+Player's variables no longer read is_climbing; the climb patch is out of date")
+    return json.dumps(jpm, indent=1)
+
+
 def main(argv: list[str]) -> None:
     if len(argv) != 2:
         raise SystemExit(__doc__)
@@ -123,6 +145,7 @@ def main(argv: list[str]) -> None:
     for jem in ("player.jem", "player_slim.jem"):
         (out / CEM / jem).write_text(patch(read_fa(source, jem)), encoding="utf-8")
     (out / CEM / CAPE).write_text(patch_cape(read_fa(source, CAPE)), encoding="utf-8")
+    (out / CEM / VARIABLES).write_text(patch_variables(read_fa(source, VARIABLES)), encoding="utf-8")
     sys.path.insert(0, str(HERE))
     import animations
     (out / CEM / MODULE).write_text(json.dumps(animations.build(fa_layer_vars(source)), indent=2),

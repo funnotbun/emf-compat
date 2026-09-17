@@ -34,7 +34,10 @@ STATE = {
     "var.pc_shake": "pow( clamp(var.pc_chg*1.25-0.25, 0, 1), 3 )*sin( age*2.3 )",
     # hang: weight, time since it started, feet on the wall, and the shuffle along the ledge (-1..1)
     # with its phase
-    "var.pc_hw": "clamp( if( varb.fcc, var.pc_hw, parcool_hang>0, var.pc_hw +25*frame_time, var.pc_hw -8*frame_time ), 0, 1 )",
+    "var.pc_hw": "clamp( if( varb.fcc, var.pc_hw, parcool_hang>0, var.pc_hw +if(var.pc_plt<0.8, 2.5, 25)*frame_time, var.pc_hw -8*frame_time ), 0, 1 )",
+    # time since a pole climb: climbing off the top of a chain into a hang, the hang comes in slowly
+    # from FA's ladder climb instead of taking the body in a tick
+    "var.pc_plt": "if( parcool_pole_climb>0, 0, var.pc_plt +if(varb.fcc, 0, frame_time) )",
     "var.pc_ht": "if( parcool_hang>0, var.pc_ht +if(varb.fcc, 0, frame_time), 0 )",
     # the catch: the mod's body offset (pixels, down positive) - the body arrives a little high, drops
     # under the hands and springs back; the IK arms already allow for it. The legs trail it a little.
@@ -56,6 +59,13 @@ STATE = {
     # speed a beat late, so they lag behind it on the way out and swing through on the way back
     "var.pc_bw": "clamp( if( varb.fcc, var.pc_bw, parcool_bar>0, var.pc_bw +12*frame_time, var.pc_bw -8*frame_time ), 0, 1 )",
     "var.pc_btr": "if( varb.fcc, var.pc_btr, clamp(parcool_bar_swing_speed*260, -38, 38)*min(1,frame_time*5) +var.pc_btr*max(0,1-frame_time*5) )",
+    # Along the bar, as monkeys go: a hand is thrown far ahead with the body turning after it and the
+    # opposite leg flung back. The body follows the hands a beat late and the legs later still, so it
+    # rolls through the move instead of moving in step with them.
+    "var.pc_bsw": "if( varb.fcc, var.pc_bsw, var.pc_sw*min(1,frame_time*4) +var.pc_bsw*max(0,1-frame_time*4) )",
+    "var.pc_blr": "if( varb.fcc, var.pc_blr, var.pc_rr*min(1,frame_time*3.5) +var.pc_blr*max(0,1-frame_time*3.5) )",
+    "var.pc_bll": "if( varb.fcc, var.pc_bll, var.pc_lr*min(1,frame_time*3.5) +var.pc_bll*max(0,1-frame_time*3.5) )",
+    "var.pc_balong": "1 -parcool_bar_across",
     "var.pc_own": "1 -(1-var.pc_hw)*(1-var.pc_cw)*(1-var.pc_bw)",
     # Inertia: the lean, the knees and the head chase their targets instead of taking them, the left
     # knee a little behind the right; then a short settle once the feet are up on the ledge.
@@ -73,9 +83,17 @@ STATE = {
     "var.pc_lr": "if( varb.fcc, var.pc_lr, (parcool_larm_reach +parcool_larm_bar_reach)*min(1,frame_time*11) +var.pc_lr*max(0,1-frame_time*11) )",
     "var.pc_sw": "var.pc_rr -var.pc_lr",
     "var.pc_shimA": "clamp( var.pc_rr +var.pc_lr, 0, 1 )",
-    # How much the legs are kept on the hips (see build_pack.leg_attach): with the hang and the climb,
-    # eased out after them
-    "var.pc_att": "if( varb.fcc, var.pc_att, var.pc_own >var.pc_att, var.pc_own, max(0, var.pc_att -1.2*frame_time) )",
+    # The wave: hanging from the hand that holds, the body swings its feet forward as the other hand
+    # is thrown ahead and swings back through once it takes hold. A damped spring (stiffness 30,
+    # damping 7) chases that swing, so it overshoots and settles instead of following the reach
+    # exactly; the velocity is stepped before the position, both once a frame (varb.fcc).
+    "var.pc_bwt": "-22*max(var.pc_rr, var.pc_lr)*var.pc_balong",
+    "var.pc_bwv": "if( varb.fcc, var.pc_bwv, var.pc_bwv +(30*(var.pc_bwt -var.pc_bwp) -7*var.pc_bwv)*min(frame_time, 0.05) )",
+    "var.pc_bwp": "if( varb.fcc, var.pc_bwp, var.pc_bwp +var.pc_bwv*min(frame_time, 0.05) )",
+    # How much the legs are kept on the hips (see build_pack.leg_attach): fully as soon as the hang or
+    # the climb starts to show, whatever its weight - a hang easing in slowly (off the top of a chain)
+    # otherwise left the legs half on FA's place and half on the hips; eased out after
+    "var.pc_att": "clamp( if( varb.fcc, var.pc_att, var.pc_own >0.001, var.pc_att +12*frame_time, var.pc_att -1.2*frame_time ), 0, 1 )",
     # FA's own crawl and swim are kept for ParCool's: reading these is what hands them over
     "var.pc_crawl": "parcool_crawl +parcool_fast_swim",
     "var.pc_leap": "clamp( if( varb.fcc, var.pc_leap, parcool_charge_jump>0 && !is_on_ground, var.pc_leap +8*frame_time, var.pc_leap -4*frame_time ), 0, 1 )",
@@ -131,16 +149,23 @@ BAR = {
     "larmrx": "parcool_larm_bar_rx",
     "rarmry": "parcool_rarm_bar_ry",
     "larmry": "parcool_larm_bar_ry",
+    # raised so the hands reach the bar; FA hangs the head and arms off the torso, the legs follow
+    # through leg_attach
+    "bodyty": "-parcool_bar_raise",
+    "rarmrz": "parcool_rarm_bar_rz",
+    "larmrz": "parcool_larm_bar_rz",
     "rarmty": "-parcool_rarm_bar_lift",
     "larmty": "-parcool_larm_bar_lift",
-    # each reach swings the body to the holding hand and twists it after the reaching one, and kicks
-    # the opposite leg forward to carry the swing, as on monkey bars
-    "bodyrz": "torad( -11*var.pc_sw )",
-    "bodyry": "torad( 9*var.pc_sw )",
-    "bodyrx": "torad( 0.2*var.pc_btr -4*var.pc_shimA )",
+    # Each reach hangs the body off the holding hand; along the bar it also turns the reaching
+    # shoulder forward after the hand (a left reach turns the body left, bodyry +), the head holding
+    # its gaze, and flings the opposite leg back while the other swings a little forward.
+    "bodyrz": "torad( -13*var.pc_bsw )",
+    "bodyry": "torad( -24*var.pc_bsw*var.pc_balong )",
+    "headry": "torad( 14*var.pc_bsw*var.pc_balong )",
+    "bodyrx": "torad( 0.2*var.pc_btr -5*var.pc_shimA*(1-var.pc_balong) +var.pc_bwp )",
     "headrx": "torad( -8 )",
-    "rlegrx": "torad( var.pc_btr +2 +3*sin(age/13) -34*var.pc_lr +8*var.pc_rr )",
-    "llegrx": "torad( 0.85*var.pc_btr -2 -3*sin(age/13 +0.8) -34*var.pc_rr +8*var.pc_lr )",
+    "rlegrx": "torad( var.pc_btr +2 +3*sin(age/13) +0.7*var.pc_bwp +(38*var.pc_bll -12*var.pc_blr)*var.pc_balong -20*var.pc_bll*(1-var.pc_balong) )",
+    "llegrx": "torad( 0.85*var.pc_btr -2 -3*sin(age/13 +0.8) +0.7*var.pc_bwp +(38*var.pc_blr -12*var.pc_bll)*var.pc_balong -20*var.pc_blr*(1-var.pc_balong) )",
     "rlegrz": "torad(  3 -5*var.pc_sw )",
     "llegrz": "torad( -3 -5*var.pc_sw )",
 }

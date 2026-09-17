@@ -93,7 +93,8 @@ public final class ParCoolPackVariables {
             Map.entry("parcool:climb_up_jump", "climb"),
             Map.entry("parcool:crawl", "crawl"),
             Map.entry("parcool:fast_swim", "fast_swim"),
-            Map.entry("parcool:hang_down", "bar"));
+            Map.entry("parcool:hang_down", "bar"),
+            Map.entry("parcool:pole_climb", "pole"));
 
     /**
      * Moves whose torso transform is only a lean, which a pack animating the move replaces with its
@@ -129,6 +130,8 @@ public final class ParCoolPackVariables {
                 player -> isRunning(player, "parcool:crawl") ? 1f : 0f);
         register("parcool_fast_swim", "fast_swim", "1 while ParCool's fast swim is playing; reading it hands the swim to the pack's own",
                 player -> isRunning(player, "parcool:fast_swim") ? 1f : 0f);
+        register("parcool_pole_climb", "pole", "1 while climbing a pole or chain; reading it hands the climb to the pack (FA+Player's ladder climb)",
+                player -> doing(action(player, "POLE_CLIMB")) ? 1f : 0f);
         register("parcool_charge", "charge", "How far a ParCool charge jump is charged, 0 to 1",
                 player -> (Float) invoke(action(player, "CHARGE_JUMP"), "getChargeProgress", partialTick()));
         register("parcool_charge_jump", "charge", "1 while the jump out of a ParCool charge is playing",
@@ -192,14 +195,17 @@ public final class ParCoolPackVariables {
         register("parcool_bar_ik", "bar", "1 while the hands are on the bar, else 0", player -> bar(player).valid() ? 1f : 0f);
         register("parcool_rarm_bar_rx", "bar", "Right arm x rotation that puts the hand on the bar, radians", player -> bar(player).rightX());
         register("parcool_rarm_bar_ry", "bar", "Right arm y rotation that puts the hand on the bar, radians", player -> bar(player).rightY());
+        register("parcool_bar_raise", "bar", "Pixels to raise the body under the bar so the hands reach it", player -> bar(player).raise());
+        register("parcool_rarm_bar_rz", "bar", "Right arm z rotation on the bar, radians; along the bar the arms swing by x and lean by z, with no y", player -> bar(player).rightZ());
+        register("parcool_larm_bar_rz", "bar", "Left arm z rotation on the bar, radians", player -> bar(player).leftZ());
         register("parcool_rarm_bar_lift", "bar", "Pixels to raise the right shoulder for the hand to reach the bar", player -> bar(player).rightLift());
         register("parcool_larm_bar_rx", "bar", "Left arm x rotation that puts the hand on the bar, radians", player -> bar(player).leftX());
         register("parcool_larm_bar_ry", "bar", "Left arm y rotation that puts the hand on the bar, radians", player -> bar(player).leftY());
         register("parcool_larm_bar_lift", "bar", "Pixels to raise the left shoulder for the hand to reach the bar", player -> bar(player).leftLift());
-        register("parcool_rarm_bar_reach", "bar", "Moving along the bar: 0 while the right hand holds, rising to 1 mid-reach to its next grip",
-                player -> doing(action(player, "HANG_DOWN")) ? ParCoolHandIK.stepPhase(player.getUUID(), true) : 0f);
-        register("parcool_larm_bar_reach", "bar", "Moving along the bar: 0 while the left hand holds, rising to 1 mid-reach to its next grip",
-                player -> doing(action(player, "HANG_DOWN")) ? ParCoolHandIK.stepPhase(player.getUUID(), false) : 0f);
+        register("parcool_rarm_bar_reach", "bar", "Moving along the bar: 0 while the right hand holds, 0.3 let go and hanging, 1 at its next grip",
+                player -> doing(action(player, "HANG_DOWN")) ? ParCoolHandIK.barPhase(player.getUUID(), true) : 0f);
+        register("parcool_larm_bar_reach", "bar", "Moving along the bar: 0 while the left hand holds, 0.3 let go and hanging, 1 at its next grip",
+                player -> doing(action(player, "HANG_DOWN")) ? ParCoolHandIK.barPhase(player.getUUID(), false) : 0f);
         register("parcool_rleg_ik", "hang", "1 while hanging with wall below for the right foot to stand on, else 0",
                 player -> legs(player).rightValid() ? 1f : 0f);
         register("parcool_rleg_ik_rx", "hang", "Right leg x rotation that sets the foot on the wall, radians", player -> legs(player).rightX());
@@ -248,6 +254,14 @@ public final class ParCoolPackVariables {
     @Nullable
     public static String moveOf(Object entry) {
         return MOVE_OF_ANIMATION.get(((ParCool4WorkingEntryAccessor) entry).emfcompat$registration().location().toString());
+    }
+
+    /** Whether a pack is animating this move for this player right now: it has read its variables lately. */
+    public static boolean packAnimates(Player player, String move) {
+        if (!EMFCompatParCoolMod.isPackAnimations()) return false;
+        Map<String, Long> reads = LAST_READ.get(player.getUUID());
+        Long read = reads == null ? null : reads.get(move);
+        return read != null && System.nanoTime() - read <= PACK_READ_TIMEOUT_NANOS;
     }
 
     /** Whether a pack plays this running ParCool animation (an {@code AnimationProcessor} entry). */

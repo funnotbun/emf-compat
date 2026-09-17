@@ -14,7 +14,8 @@
     "ParCool4BodyLeanMixin",
     "ParCool4TransformMixin",
     "ParCool4PackFilterMixin",
-    "ParCool4ModelPoseMixin"
+    "ParCool4ModelPoseMixin",
+    "ParCool4BarSpeedMixin"
   ],
   "injectors": {
     "defaultRequire": 1

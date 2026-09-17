@@ -46,6 +46,8 @@ public abstract class ParCool4PackFilterMixin implements ParCool4PackTransforms 
     @Unique @Nullable private BlendingModelTransform emfcompat$body;
     /** When ParCool last started showing a pose after showing none, or -1 while it shows none. */
     @Unique private long emfcompat$shownSince = -1;
+    /** The same for the limbs alone. */
+    @Unique private long emfcompat$limbsShownSince = -1;
     /** Whether this frame's transforms were worked out; not in first person, where all is ParCool's. */
     @Unique private boolean emfcompat$ready;
 
@@ -128,16 +130,32 @@ public abstract class ParCool4PackFilterMixin implements ParCool4PackTransforms 
         } else if (emfcompat$shownSince < 0) {
             emfcompat$shownSince = now;
         }
+        // The limbs on their own clock too: under a pack-played move that keeps ParCool's torso (a
+        // pole climb) the torso is shown all along, and the limbs of the move after it (sliding down
+        // into a hang) snapped in over the pack's.
+        if (limbs == null) {
+            emfcompat$limbsShownSince = -1;
+        } else if (emfcompat$limbsShownSince < 0) {
+            emfcompat$limbsShownSince = now;
+        }
         float t = Math.min(1f, (now - emfcompat$shownSince) / (float) EMFCOMPAT$EASE_IN_NANOS);
         float ease = t * t * (3f - 2f * t);
-        emfcompat$limbs = emfcompat$eased(limbs, ease, limbsKept, true);
+        float lt = Math.min(1f, (now - emfcompat$limbsShownSince) / (float) EMFCOMPAT$EASE_IN_NANOS);
+        float limbsEase = lt * lt * (3f - 2f * lt);
+        emfcompat$limbs = emfcompat$eased(limbs, Math.min(ease, limbsEase), limbsKept, true);
         emfcompat$body = emfcompat$eased(body, ease, bodyKept, false);
         // Only a ledge hang turns the torso a wall at a time; under a bar ParCool turns it smoothly itself.
         boolean ledge = false;
+        boolean pole = false;
         for (Object entry : turn) {
-            if ("hang".equals(ParCoolPackVariables.moveOf(entry))) ledge = true;
+            String move = ParCoolPackVariables.moveOf(entry);
+            if ("hang".equals(move)) ledge = true;
+            if ("pole".equals(move)) pole = true;
         }
         emfcompat$body = emfcompat$turnSmoothly(emfcompat$body, ledge, partial, now);
+        // Climbing a pole the pack plays FA's ladder climb, which sets its own lean: of ParCool's torso
+        // only the turn to face the pole stays, not the 15 degrees it leans the body back by.
+        if (pole) emfcompat$body = emfcompat$yawOnly(emfcompat$body);
         emfcompat$ready = true;
     }
 
@@ -210,6 +228,22 @@ public abstract class ParCool4PackFilterMixin implements ParCool4PackTransforms 
         parts.putAll(transform.transformation().transforms());
         parts.put(AnimatableModelPart.BODY, new Transform(
                 new com.alrex.parcool.client.animation.system.math.Vec3f(moved.x, moved.y, moved.z), rotation));
+        return new BlendingModelTransform(new ModelTransform(parts), transform.isOverwriting(),
+                transform.blendFactor(), transform.cameraRotation());
+    }
+
+    /** The transform with the torso only turned about the vertical: no lean, no shift. */
+    @Unique
+    @Nullable
+    private static BlendingModelTransform emfcompat$yawOnly(@Nullable BlendingModelTransform transform) {
+        Transform torso = transform == null ? null : transform.transformation().transforms().get(AnimatableModelPart.BODY);
+        if (torso == null) return transform;
+        org.joml.Vector3f forward = torso.rotation().transform(new org.joml.Vector3f(0, 0, 1));
+        float yaw = (float) Math.atan2(forward.x, forward.z);
+        EnumMap<AnimatableModelPart, Transform> parts = new EnumMap<>(AnimatableModelPart.class);
+        parts.putAll(transform.transformation().transforms());
+        parts.put(AnimatableModelPart.BODY, new Transform(com.alrex.parcool.client.animation.system.math.Vec3f.ZERO,
+                new org.joml.Quaternionf().rotationY(yaw)));
         return new BlendingModelTransform(new ModelTransform(parts), transform.isOverwriting(),
                 transform.blendFactor(), transform.cameraRotation());
     }
