@@ -154,21 +154,22 @@ def _driver_jar(profile: Profile) -> Path | None:
     return max(jars, key=lambda p: p.stat().st_mtime) if jars else None
 
 
-def _patch_options(path: Path) -> None:
+def _patch_options(path: Path, extra: dict[str, str] | None = None) -> None:
+    overrides = {**OPTION_OVERRIDES, **(extra or {})}
     lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
     seen = set()
     for i, line in enumerate(lines):
         key = line.split(":", 1)[0]
-        if key in OPTION_OVERRIDES:
-            lines[i] = f"{key}:{OPTION_OVERRIDES[key]}"
+        if key in overrides:
+            lines[i] = f"{key}:{overrides[key]}"
             seen.add(key)
-    lines += [f"{k}:{v}" for k, v in OPTION_OVERRIDES.items() if k not in seen]
+    lines += [f"{k}:{v}" for k, v in overrides.items() if k not in seen]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def prepare_sandbox(profile: Profile, world: str | None, use_project_jars: bool = True,
                     fresh_world: bool = False, enable: list[str] | None = None,
-                    disable: list[str] | None = None, emf_log: bool = False) -> dict:
+                    disable: list[str] | None = None, emf_log: bool = False, no_cape: bool = False) -> dict:
     src, dst = profile.path, profile.sandbox
     dst.mkdir(parents=True, exist_ok=True)
     report = {"sandbox": str(dst), "swapped": [], "enabled": [], "disabled": [], "driver": None,
@@ -243,7 +244,8 @@ def prepare_sandbox(profile: Profile, world: str | None, use_project_jars: bool 
     for name in ["options.txt", "servers.dat"]:
         if (src / name).exists():
             shutil.copy2(src / name, dst / name)
-    _patch_options(dst / "options.txt")
+    # A cape hides the torso and legs from behind; --no-cape turns the player's off for the shots.
+    _patch_options(dst / "options.txt", {"modelPart_cape": "false"} if no_cape else None)
 
     if world:
         target = dst / "saves" / world
@@ -313,7 +315,8 @@ def _java_for(major: int) -> Path:
     raise SystemExit(f"no Java {major} in {META / 'java_versions'} — launch the profile once from the Modrinth App")
 
 
-def build_command(profile: Profile, world: str | None, width: int, height: int) -> list[str]:
+def build_command(profile: Profile, world: str | None, width: int, height: int,
+                  player_name: str = OFFLINE_NAME, player_uuid: str | None = None) -> list[str]:
     vid = profile.version_id
     vjson = META / "versions" / vid / f"{vid}.json"
     if not vjson.exists():
@@ -333,9 +336,11 @@ def build_command(profile: Profile, world: str | None, width: int, height: int) 
 
     natives = META / "natives" / vid
     natives.mkdir(parents=True, exist_ok=True)
-    offline_uuid = uuid.uuid3(uuid.NAMESPACE_DNS, "mctest:" + OFFLINE_NAME).hex
+    # Offline, the default skin comes from the UUID, so the name picks it (--name Player: wide Steve).
+    # A real account's UUID (--uuid) makes the game fetch that account's own skin instead.
+    offline_uuid = (player_uuid or uuid.uuid3(uuid.NAMESPACE_DNS, "mctest:" + player_name).hex).replace("-", "")
     values = {
-        "auth_player_name": OFFLINE_NAME, "version_name": vid, "game_directory": str(profile.sandbox),
+        "auth_player_name": player_name, "version_name": vid, "game_directory": str(profile.sandbox),
         "assets_root": str(META / "assets"), "assets_index_name": d["assetIndex"]["id"],
         "auth_uuid": offline_uuid, "auth_access_token": "0", "clientid": "", "auth_xuid": "",
         "user_type": "legacy", "version_type": d.get("type", "release"),
@@ -401,12 +406,14 @@ def running_pid(profile: Profile) -> int | None:
 
 def launch(name: str, world: str | None = None, width: int = 1280, height: int = 720,
            use_project_jars: bool = True, fresh_world: bool = False,
-           enable: list[str] | None = None, disable: list[str] | None = None, emf_log: bool = False) -> dict:
+           enable: list[str] | None = None, disable: list[str] | None = None, emf_log: bool = False,
+           player_name: str = OFFLINE_NAME, player_uuid: str | None = None, no_cape: bool = False) -> dict:
     profile = get_profile(name)
     if running_pid(profile):
         raise SystemExit(f"{profile.name} is already running (pid {running_pid(profile)}); stop it first")
-    report = prepare_sandbox(profile, world, use_project_jars, fresh_world, enable, disable, emf_log)
-    cmd = build_command(profile, world, width, height)
+    report = prepare_sandbox(profile, world, use_project_jars, fresh_world, enable, disable, emf_log,
+                             no_cape=no_cape)
+    cmd = build_command(profile, world, width, height, player_name, player_uuid)
     # The child keeps its own handle on the log, so the parent's can close with the block.
     with open(profile.sandbox / "mctest" / "launcher.out", "w") as log:
         proc = subprocess.Popen(cmd, cwd=profile.sandbox, stdout=log, stderr=subprocess.STDOUT,
@@ -561,8 +568,12 @@ def _main(argv: list[str]) -> None:
         world = rest[rest.index("--world") + 1] if "--world" in rest else None
         enable = rest[rest.index("--enable") + 1].split(",") if "--enable" in rest else None
         disable = rest[rest.index("--disable") + 1].split(",") if "--disable" in rest else None
+        name = rest[rest.index("--name") + 1] if "--name" in rest else OFFLINE_NAME
         print(json.dumps(launch(rest[0], world, fresh_world="--fresh-world" in rest,
-                                enable=enable, disable=disable, emf_log="--emf-log" in rest), indent=1))
+                                enable=enable, disable=disable, emf_log="--emf-log" in rest,
+                                player_name=name,
+                                player_uuid=rest[rest.index("--uuid") + 1] if "--uuid" in rest else None,
+                                no_cape="--no-cape" in rest), indent=1))
     elif cmd == "wait":
         print(json.dumps(wait_ready(rest[0]), indent=1))
     elif cmd == "steps":

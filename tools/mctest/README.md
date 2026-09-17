@@ -60,6 +60,8 @@ python3 tools/mctest/mctest.py steps Test "$(cat tools/mctest/scenarios/worn-ite
 | `parcool-course.json` | NeoForge 1.21.1 `Test`, world `New World2`: unlocks every ParCool 4 action, builds a runway with a low wall (vault), a 4-high wall (hang, climb up) and a long wall. Launch with `enable=["ParCool-1.21.1", "emf_compat_parcool"]` and `disable=["hackersandslashers-2.0", "emf_compat_hackers_and_slashers"]` (Better Combat does not load next to Hackers 'n Slashers). |
 | `parcool-moves.json` | Fast run in/hold/out with fade probes, vault, hang and climb up, crawl, slide, dodges, charge jump — each with the `parcool` probe. |
 | `parcool-pack.json` | The ParCool animation pack's moves with the pack on: fast run and charge jump (`fade` shows no pose sources while the pack animates them), a vault that stays ParCool's pose, then the hang - a drop onto the wall (ParCool slides down first, on the same key), a shuffle, and a free ledge. Build the pack first (`extensions/parcool/resourcepack/build_pack.py`), launch with WATUT disabled, hide the GUI and enable it above FA+Player with a `packs` step. |
+| `parcool-all-scene.json` | A sky course at y=200 (floor at 199, nothing else in view) for every ParCool 4 action: a runway ending at the platform edge (dive, skydive), a low wall (vault), a 3-high ledge (hang, shimmy, climb up), a 9-high wall (catch, castaway, wall run, grapple), a long wall (side wall run, wall jump), an end-rod bar (hang down), a chain pole, a hay block (hide), a pool (fast swim) and two zipline hooks. Unlocks the actions. |
+| `parcool-all-moves.json` | All 27 moves on that course, each marked `move <name>` in the log, with a `parcool` probe and a screenshot every few ticks: fast run, slide, crawl, four dodges, charge jump, back and forward trick jumps, vault, hang/shimmy/climb up, castaway, catch from a drop, wall run, wall jump, side wall run, dive, skydive, both breakfalls, hang down, pole climb, hide in block, fast swim, zipline (ties the rope first), grapple. Keys are held for 2 ticks, not clicked: ParCool reads key state per tick and misses a `click`. ParCool 4.0.0.3 itself logs a `ClassCastException` from `Castaway.onStart` on the integrated server; the move still plays. |
 | `parcool-combos.json` | The same course with other addons: a Better Combat swing during a fast run (add `bettercombat-neoforge`, `emf_compat_better_combat` to `enable`), an Immersive Melodies flute while running and crawling, NEA eating into a run, WATUT typing, the JustExpressions face during a charge jump. |
 
 For contact sheets and images outside MCP, import `server.py`:
@@ -190,6 +192,10 @@ metadata, and a copy of `Driver.java`. `mctest.py` finds it by the folder name
   "Failure parsing ASM". The reason goes to stdout: read `run/mctest/<profile>/mctest/launcher.out`
   (e.g. "a variable was used both as a number and a boolean" for `!var.x`). `launch --emf-log`
   also turns on EMF's model-creation and ASM logs in the sandbox's config copy.
+- **The default skin and a cape hide limbs in shots.** `launch --no-cape` turns the player's cape
+  off in the sandbox's options; `--name NAME --uuid UUID` plays as that account (UUID from
+  `api.mojang.com/users/profiles/minecraft/NAME`), and the game fetches its skin. `--name` alone
+  picks another default skin (`--name Player` is the wide Steve).
 - **WATUT marks a scripted player as AFK** ("zZ") and bows its head; shoot animations with
   `disable=["watut", "emf_compat_watut"]`. A pack switch while the chat renders can crash vanilla's
   font upload - hide the GUI first.
