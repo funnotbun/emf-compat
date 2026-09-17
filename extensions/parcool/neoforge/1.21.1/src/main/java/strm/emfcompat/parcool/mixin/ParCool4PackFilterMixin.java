@@ -132,6 +132,12 @@ public abstract class ParCool4PackFilterMixin implements ParCool4PackTransforms 
         float ease = t * t * (3f - 2f * t);
         emfcompat$limbs = emfcompat$eased(limbs, ease, limbsKept, true);
         emfcompat$body = emfcompat$eased(body, ease, bodyKept, false);
+        // Only a ledge hang turns the torso a wall at a time; under a bar ParCool turns it smoothly itself.
+        boolean ledge = false;
+        for (Object entry : turn) {
+            if ("hang".equals(ParCoolPackVariables.moveOf(entry))) ledge = true;
+        }
+        emfcompat$body = emfcompat$turnSmoothly(emfcompat$body, ledge, partial, now);
         emfcompat$ready = true;
     }
 
@@ -156,6 +162,56 @@ public abstract class ParCool4PackFilterMixin implements ParCool4PackTransforms 
             kept *= 1f - Math.max(0f, Math.min(1f, factor * 3f));
         }
         return kept;
+    }
+
+    /** How long the torso takes to come round to a new wall, hanging: time constant. */
+    @Unique private static final float EMFCOMPAT$TURN_SECONDS = 0.12f;
+
+    /** The torso's yaw in the world as last drawn, degrees; NaN while not smoothing. */
+    @Unique private float emfcompat$worldYaw = Float.NaN;
+    @Unique private long emfcompat$turnNanos;
+
+    /**
+     * Hanging, ParCool turns the torso to face the wall it holds, and going round a corner that wall
+     * steps from one face to the corner to the next in as many ticks - a quarter turn in 0.15 s. The
+     * torso's yaw in the world is eased towards ParCool's instead, and the difference is turned in
+     * ahead of ParCool's own rotation, around the same vertical axis the renderer turns the body by.
+     */
+    @Unique
+    @Nullable
+    private BlendingModelTransform emfcompat$turnSmoothly(@Nullable BlendingModelTransform transform, boolean hanging,
+                                                         float partial, long now) {
+        Transform torso = transform == null ? null : transform.transformation().transforms().get(AnimatableModelPart.BODY);
+        if (!hanging || torso == null) {
+            emfcompat$worldYaw = Float.NaN;
+            return transform;
+        }
+        org.joml.Vector3f forward = torso.rotation().transform(new org.joml.Vector3f(0, 0, 1));
+        float stackYaw = (float) Math.toDegrees(Math.atan2(forward.x, forward.z));
+        float bodyRot = net.minecraft.util.Mth.rotLerp(partial, owner.yBodyRotO, owner.yBodyRot);
+        // The renderer turns by (180 - bodyRot), then by the torso's rotation.
+        float target = stackYaw - bodyRot;
+        if (Float.isNaN(emfcompat$worldYaw)) {
+            emfcompat$worldYaw = target;
+        } else {
+            float dt = Math.min(0.1f, (now - emfcompat$turnNanos) / 1e9f);
+            emfcompat$worldYaw += net.minecraft.util.Mth.wrapDegrees(target - emfcompat$worldYaw)
+                    * (1f - (float) Math.exp(-dt / EMFCOMPAT$TURN_SECONDS));
+        }
+        emfcompat$turnNanos = now;
+        float extra = net.minecraft.util.Mth.wrapDegrees(emfcompat$worldYaw - target);
+        if (Math.abs(extra) < 0.01f) return transform;
+
+        org.joml.Quaternionf turn = new org.joml.Quaternionf().rotationY((float) Math.toRadians(extra));
+        org.joml.Quaternionf rotation = new org.joml.Quaternionf(turn).mul(torso.rotation());
+        org.joml.Vector3f moved = turn.transform(new org.joml.Vector3f(
+                torso.translation().x(), torso.translation().y(), torso.translation().z()));
+        EnumMap<AnimatableModelPart, Transform> parts = new EnumMap<>(AnimatableModelPart.class);
+        parts.putAll(transform.transformation().transforms());
+        parts.put(AnimatableModelPart.BODY, new Transform(
+                new com.alrex.parcool.client.animation.system.math.Vec3f(moved.x, moved.y, moved.z), rotation));
+        return new BlendingModelTransform(new ModelTransform(parts), transform.isOverwriting(),
+                transform.blendFactor(), transform.cameraRotation());
     }
 
     /** The torso of one transform morphed into another's, both at their own weight. */

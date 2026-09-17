@@ -38,6 +38,9 @@ ParCool's own animations are keyframed poses that look out of place next to a pr
 |---|---|
 | `parcool_fast_run` | 1 while fast running |
 | `parcool_charge` | charge jump charge, 0 to 1 |
+| `parcool_bar`, `parcool_bar_swing`, `parcool_bar_swing_speed`, `parcool_bar_across` | hanging under a bar: 1 while hanging, the swing ParCool turns the body by (radians) and its speed (radians per tick), 1 facing across the bar |
+| `parcool_rarm_bar_rx`, `parcool_rarm_bar_ry`, `parcool_rarm_bar_lift` (and `larm`), `parcool_rarm_bar_reach`, `parcool_larm_bar_reach` | arm angles and shoulder lift that put each hand on the bar, moving hand over hand along it |
+| `parcool_crawl`, `parcool_fast_swim` | 1 while crawling or fast swimming; a pack that reads them keeps its own crawl and swim instead of ParCool's |
 | `parcool_charge_jump` | 1 during the jump out of a charge |
 | `parcool_vault` | progress through a vault, 0 to 1 |
 | `parcool_vault_side` | -1 vaulting left, 1 right, 0 straight over |

@@ -42,6 +42,31 @@ def fa_layer_vars(source: Path) -> set[str]:
     return names
 
 
+def hip(side: float, axis: str) -> str:
+    """Where the top of a leg belongs on the torso as posed right now: the point (side, 12, 0) below
+    the torso's pivot, turned the way ModelPart turns it (x, then y, then z)."""
+    x0 = f"(({side})*cos(body.ry) +12*sin(body.rx)*sin(body.ry))"
+    y0 = "(12*cos(body.rx))"
+    return {
+        "x": f"body.tx +{x0}*cos(body.rz) -{y0}*sin(body.rz)",
+        "y": f"body.ty +{x0}*sin(body.rz) +{y0}*cos(body.rz)",
+        "z": f"body.tz -({side})*sin(body.ry) +12*sin(body.rx)*cos(body.ry)",
+    }[axis]
+
+
+def leg_attach() -> dict:
+    """FA's legs are not children of the torso: each layer moves them on its own. Under ParCool's
+    hang and climb the torso goes where FA's legs do not follow - it swings and shifts under the
+    hands - so while one holds (``var.pc_att``, eased out after) the legs are put back on the hips.
+    Runs after FA sets the legs and before the pants copy them."""
+    block = {}
+    for leg, side in (("right_leg", -2), ("left_leg", 2)):
+        for axis in "xyz":
+            part = f"{leg}.t{axis}"
+            block[part] = f"{part} +( {hip(side, axis)} -{part} )*var.pc_att"
+    return block
+
+
 def patch(jem_text: str) -> str:
     jem = json.loads(jem_text)
     models = jem["models"]
@@ -50,6 +75,14 @@ def patch(jem_text: str) -> str:
     index = next(i for i, m in enumerate(models) if m.get("model") == AFTER)
     models.insert(index + 1, {"part": "root", "id": "root", "invertAxis": "xy",
                               "translate": [0, 0, 0], "model": MODULE})
+    for model in models:
+        blocks = model.get("animations", [])
+        at = next((i for i, block in enumerate(blocks) if "right_leg.tx" in block), None)
+        if at is not None:
+            blocks.insert(at + 1, leg_attach())
+            break
+    else:
+        raise SystemExit("FA+Player no longer sets right_leg.tx in its player model; the leg patch is out of date")
     jem["credit"] = jem.get("credit", "") + " | ParCool module: EMF Compat"
     return json.dumps(jem, indent=1)
 

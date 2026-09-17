@@ -13,6 +13,7 @@ import strm.emfcompat.parcool.mixin.ParCool4ProcessorAccessor;
 import strm.emfcompat.parcool.mixin.ParCool4WorkingEntryAccessor;
 import com.alrex.parcool.client.animation.system.PlayerAnimator;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.core.BlockPos;
 import traben.entity_model_features.EMFAnimationApi;
 import traben.entity_model_features.models.animation.state.EMFEntityRenderState;
 import traben.entity_model_features.models.animation.state.EMFState;
@@ -32,6 +33,11 @@ import java.lang.reflect.Method;
  *
  * <ul>
  *     <li>{@code parcool_fast_run} - 1 while ParCool's fast run is playing, else 0</li>
+ *     <li>{@code parcool_bar} - 1 while hanging under a bar; {@code parcool_bar_swing}/{@code _swing_speed}
+ *     the swing ParCool turns the body by, {@code parcool_bar_across} facing across it, and
+ *     {@code parcool_rarm_bar_rx}/{@code _ry}/{@code _lift} (and the left ones) the arms on the bar</li>
+ *     <li>{@code parcool_crawl}, {@code parcool_fast_swim} - 1 while that move is playing; a pack
+ *     that reads them plays its own crawl and swim for ParCool's</li>
  *     <li>{@code parcool_charge} - how far a charge jump is charged, 0 to 1</li>
  *     <li>{@code parcool_charge_jump} - 1 while the jump out of a charge is playing, else 0</li>
  *     <li>{@code parcool_vault} - progress through a vault, 0 to 1; 0 when not vaulting</li>
@@ -50,6 +56,9 @@ import java.lang.reflect.Method;
  *     worked out from shoulders moved by it, so the hands stay on the ledge</li>
  *     <li>{@code parcool_rarm_reach}/{@code parcool_larm_reach} - shuffling along a ledge, the hands go
  *     hand over hand: 0 while a hand holds, up to 1 mid-reach to its next grip</li>
+ *     <li>{@code parcool_rleg_ik}/{@code parcool_lleg_ik} - 1 while hanging with wall below for that
+ *     foot; then {@code parcool_rleg_ik_rx}/{@code _rz} (and the left ones) set it on the wall, stepping
+ *     along like the hands</li>
  *     <li>{@code parcool_rarm_ik}/{@code parcool_larm_ik} - 1 while hanging with a ledge top found
  *     for that hand; then {@code parcool_rarm_ik_rx}/{@code _ry} (and the left ones) are the arm
  *     rotations, in radians, that put the hand on the ledge, {@code parcool_rarm_ik_reach} the
@@ -73,22 +82,25 @@ public final class ParCoolPackVariables {
     private static final Logger LOGGER = LoggerFactory.getLogger("emf_compat");
 
     /** The move each ParCool animation belongs to; a pack reading that move's variables takes it. */
-    private static final Map<String, String> MOVE_OF_ANIMATION = Map.of(
-            "parcool:fast_run", "fast_run",
-            "parcool:jump_charging", "charge",
-            "parcool:charge_jump", "charge",
-            "parcool:vault_forward", "vault",
-            "parcool:vault_side", "vault",
-            "parcool:hang_on", "hang",
-            "parcool:climb_up", "climb",
-            "parcool:climb_up_jump", "climb");
+    private static final Map<String, String> MOVE_OF_ANIMATION = Map.ofEntries(
+            Map.entry("parcool:fast_run", "fast_run"),
+            Map.entry("parcool:jump_charging", "charge"),
+            Map.entry("parcool:charge_jump", "charge"),
+            Map.entry("parcool:vault_forward", "vault"),
+            Map.entry("parcool:vault_side", "vault"),
+            Map.entry("parcool:hang_on", "hang"),
+            Map.entry("parcool:climb_up", "climb"),
+            Map.entry("parcool:climb_up_jump", "climb"),
+            Map.entry("parcool:crawl", "crawl"),
+            Map.entry("parcool:fast_swim", "fast_swim"),
+            Map.entry("parcool:hang_down", "bar"));
 
     /**
      * Moves whose torso transform is only a lean, which a pack animating the move replaces with its
      * own. Elsewhere ParCool's torso transform also turns the body - a hang faces the wall whichever
      * way the player looks - so it stays even when the pack animates the limbs.
      */
-    private static final Set<String> LEAN_ONLY_MOVES = Set.of("fast_run", "charge");
+    private static final Set<String> LEAN_ONLY_MOVES = Set.of("fast_run", "charge", "crawl", "fast_swim");
 
     /** A pack read older than this no longer counts: the pack was switched off or reloaded. */
     private static final long PACK_READ_TIMEOUT_NANOS = 500_000_000L;
@@ -113,6 +125,10 @@ public final class ParCoolPackVariables {
     public static void register() {
         register("parcool_fast_run", "fast_run", "1 while ParCool's fast run is playing",
                 player -> isRunning(player, "parcool:fast_run") ? 1f : 0f);
+        register("parcool_crawl", "crawl", "1 while ParCool's crawl is playing; reading it hands the crawl to the pack's own",
+                player -> isRunning(player, "parcool:crawl") ? 1f : 0f);
+        register("parcool_fast_swim", "fast_swim", "1 while ParCool's fast swim is playing; reading it hands the swim to the pack's own",
+                player -> isRunning(player, "parcool:fast_swim") ? 1f : 0f);
         register("parcool_charge", "charge", "How far a ParCool charge jump is charged, 0 to 1",
                 player -> (Float) invoke(action(player, "CHARGE_JUMP"), "getChargeProgress", partialTick()));
         register("parcool_charge_jump", "charge", "1 while the jump out of a ParCool charge is playing",
@@ -165,6 +181,33 @@ public final class ParCoolPackVariables {
                 player -> doing(action(player, "HANG_ON")) ? ParCoolHandIK.stepPhase(player.getUUID(), true) : 0f);
         register("parcool_larm_reach", "hang", "Shuffling along a ledge: 0 while the left hand holds, rising to 1 mid-reach to its next grip",
                 player -> doing(action(player, "HANG_ON")) ? ParCoolHandIK.stepPhase(player.getUUID(), false) : 0f);
+        register("parcool_bar", "bar", "1 while hanging under a bar (ParCool's hang down); ParCool still swings and turns the body",
+                player -> doing(action(player, "HANG_DOWN")) ? 1f : 0f);
+        register("parcool_bar_swing", "bar", "How far the body has swung under the bar, radians; ParCool turns the body by it",
+                player -> barFloat(player, "getRotationAngle"));
+        register("parcool_bar_swing_speed", "bar", "How fast the body swings under the bar, radians per tick",
+                player -> barFloat(player, "getAngularSpeed"));
+        register("parcool_bar_across", "bar", "1 facing across the bar (the body can swing), 0 facing along it",
+                player -> barFloat(player, "getBlendFactorOrthogonalToBar"));
+        register("parcool_bar_ik", "bar", "1 while the hands are on the bar, else 0", player -> bar(player).valid() ? 1f : 0f);
+        register("parcool_rarm_bar_rx", "bar", "Right arm x rotation that puts the hand on the bar, radians", player -> bar(player).rightX());
+        register("parcool_rarm_bar_ry", "bar", "Right arm y rotation that puts the hand on the bar, radians", player -> bar(player).rightY());
+        register("parcool_rarm_bar_lift", "bar", "Pixels to raise the right shoulder for the hand to reach the bar", player -> bar(player).rightLift());
+        register("parcool_larm_bar_rx", "bar", "Left arm x rotation that puts the hand on the bar, radians", player -> bar(player).leftX());
+        register("parcool_larm_bar_ry", "bar", "Left arm y rotation that puts the hand on the bar, radians", player -> bar(player).leftY());
+        register("parcool_larm_bar_lift", "bar", "Pixels to raise the left shoulder for the hand to reach the bar", player -> bar(player).leftLift());
+        register("parcool_rarm_bar_reach", "bar", "Moving along the bar: 0 while the right hand holds, rising to 1 mid-reach to its next grip",
+                player -> doing(action(player, "HANG_DOWN")) ? ParCoolHandIK.stepPhase(player.getUUID(), true) : 0f);
+        register("parcool_larm_bar_reach", "bar", "Moving along the bar: 0 while the left hand holds, rising to 1 mid-reach to its next grip",
+                player -> doing(action(player, "HANG_DOWN")) ? ParCoolHandIK.stepPhase(player.getUUID(), false) : 0f);
+        register("parcool_rleg_ik", "hang", "1 while hanging with wall below for the right foot to stand on, else 0",
+                player -> legs(player).rightValid() ? 1f : 0f);
+        register("parcool_rleg_ik_rx", "hang", "Right leg x rotation that sets the foot on the wall, radians", player -> legs(player).rightX());
+        register("parcool_rleg_ik_rz", "hang", "Right leg z rotation (outward positive) that sets the foot on the wall, radians", player -> legs(player).rightZ());
+        register("parcool_lleg_ik", "hang", "1 while hanging with wall below for the left foot to stand on, else 0",
+                player -> legs(player).leftValid() ? 1f : 0f);
+        register("parcool_lleg_ik_rx", "hang", "Left leg x rotation that sets the foot on the wall, radians", player -> legs(player).leftX());
+        register("parcool_lleg_ik_rz", "hang", "Left leg z rotation (outward negative) that sets the foot on the wall, radians", player -> legs(player).leftZ());
         register("parcool_rarm_ik", "hang", "1 while hanging with a ledge top found for the right hand, else 0",
                 player -> hands(player).rightValid() ? 1f : 0f);
         register("parcool_larm_ik", "hang", "1 while hanging with a ledge top found for the left hand, else 0",
@@ -199,6 +242,12 @@ public final class ParCoolPackVariables {
         LEAN,
         /** The pack plays the limbs, but ParCool's torso transform also turns the body, and stays. */
         TURN
+    }
+
+    /** The move a running ParCool animation (an {@code AnimationProcessor} entry) belongs to, or null. */
+    @Nullable
+    public static String moveOf(Object entry) {
+        return MOVE_OF_ANIMATION.get(((ParCool4WorkingEntryAccessor) entry).emfcompat$registration().location().toString());
     }
 
     /** Whether a pack plays this running ParCool animation (an {@code AnimationProcessor} entry). */
@@ -280,6 +329,32 @@ public final class ParCoolPackVariables {
         int duration = (Integer) field(climb, "duration");
         return doing(climb) && duration > 0
                 ? Math.min(1f, (doingTick(climb) + partialTick()) / duration) : 0f;
+    }
+
+    private static float barFloat(AbstractClientPlayer player, String getter) throws ReflectiveOperationException {
+        Object bar = action(player, "HANG_DOWN");
+        return doing(bar) ? (Float) invoke(bar, getter, partialTick()) : 0f;
+    }
+
+    private static ParCoolHandIK.BarArms bar(AbstractClientPlayer player) throws ReflectiveOperationException {
+        Object bar = action(player, "HANG_DOWN");
+        if (!doing(bar)) return ParCoolHandIK.BarArms.NONE;
+        BlockPos pos = (BlockPos) field(bar, "hangingPos");
+        Object axis = property(bar, "propertyHangingBarAxis");
+        if (pos == null || axis == null) return ParCoolHandIK.BarArms.NONE;
+        Method positive = METHODS.get("BarAxis#getPositiveVec");
+        if (positive == null) {
+            positive = axis.getClass().getMethod("getPositiveVec");
+            positive.setAccessible(true);
+            METHODS.put("BarAxis#getPositiveVec", positive);
+        }
+        return ParCoolHandIK.barArms(player, pos, (Vec3) positive.invoke(axis));
+    }
+
+    private static ParCoolHandIK.Legs legs(AbstractClientPlayer player) throws ReflectiveOperationException {
+        Object hang = action(player, "HANG_ON");
+        if (!doing(hang)) return ParCoolHandIK.Legs.NONE;
+        return ParCoolHandIK.legs(player, (Vec3) invoke(hang, "getWallVec", partialTick()));
     }
 
     private static ParCoolHandIK.Arms hands(AbstractClientPlayer player) throws ReflectiveOperationException {
