@@ -43,6 +43,9 @@ STATE = {
     # under the hands and springs back; the IK arms already allow for it. The legs trail it a little.
     "var.pc_cy": "parcool_hang_catch",
     "var.pc_cyl": "if( varb.fcc, var.pc_cyl, var.pc_cy*min(1,frame_time*18) +var.pc_cyl*max(0,1-frame_time*18) )",
+    # the head exactly where the player looks: no easing, which read as lagging or leading the camera
+    "var.pc_hhy": "torad( parcool_head_yaw )",
+    "var.pc_hhx": "torad( parcool_head_pitch )",
     "var.pc_hwall": "if( varb.fcc, var.pc_hwall, parcool_hang_wall*min(1,frame_time*6) +var.pc_hwall*max(0,1-frame_time*6) )",
     "var.pc_hfree": "1-var.pc_hwall",
     # how much each leg follows the foot IK: on a wall to stand on, eased in as it is found
@@ -111,8 +114,10 @@ HANG = {
     "bodyrz": "torad( 4 -9*var.pc_sw )",
     "bodytx": "1.8*var.pc_sw",
     "bodyty": "var.pc_cy +0.15*sin(var.Bt) -0.9*var.pc_shimA",
-    "headrx": "torad( -16 +2.5*var.pc_cyl )",
-    "headry": "torad( -12*var.pc_sw )",
+    # The head looks where the player looks, turned back from the torso ParCool faces to the wall (the
+    # mod works that out: parcool_head_yaw), as far as a neck goes; it nods with the catch.
+    "headrx": "var.pc_hhx +torad( 2.5*var.pc_cyl )",
+    "headry": "var.pc_hhy",
     # Hands on top of the ledge. The mod aims each arm at it and blends it with hanging loose when
     # ParCool lets that hand go (looking away along the wall), as directions, so an arm never swings
     # out sideways on the way or turns round when the ledge passes behind the back; the shoulder is
@@ -150,8 +155,10 @@ BAR = {
     "rarmry": "parcool_rarm_bar_ry",
     "larmry": "parcool_larm_bar_ry",
     # raised so the hands reach the bar; FA hangs the head and arms off the torso, the legs follow
-    # through leg_attach
+    # through leg_attach. Raised that far the head would be inside a bar that runs across it, so the
+    # body hangs a little behind one (along the bar, "behind" is just further along it: no shift).
     "bodyty": "-parcool_bar_raise",
+    "bodytz": "parcool_bar_raise*parcool_bar_across",
     "rarmrz": "parcool_rarm_bar_rz",
     "larmrz": "parcool_larm_bar_rz",
     "rarmty": "-parcool_rarm_bar_lift",

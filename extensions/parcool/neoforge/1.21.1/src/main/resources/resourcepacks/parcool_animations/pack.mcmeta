@@ -1,0 +1,10 @@
+{
+  "pack": {
+    "pack_format": 34,
+    "supported_formats": {
+      "min_inclusive": 15,
+      "max_inclusive": 999
+    },
+    "description": "ParCool moves for FA+Player. Turns itself on above FA+Player."
+  }
+}

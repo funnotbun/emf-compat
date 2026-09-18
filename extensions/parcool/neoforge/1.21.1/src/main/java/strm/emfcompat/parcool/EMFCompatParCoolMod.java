@@ -24,8 +24,6 @@ public class EMFCompatParCoolMod {
     public static final String KEY_ENABLED = "parcool.enabled";
     /** Whether the head and torso are held too, or left playing the resource pack's animation. */
     public static final String KEY_WHOLE_POSE = "parcool.wholePose";
-    /** Let a resource pack that animates ParCool moves itself take them over from ParCool's poses. */
-    public static final String KEY_PACK_ANIMATIONS = "parcool.packAnimations";
 
     public EMFCompatParCoolMod(IEventBus modEventBus) {
         ConfigRegistry.section(MOD_ID, "ParCool")
@@ -36,10 +34,7 @@ public class EMFCompatParCoolMod {
                         "Whole pose",
                         "Hold every part ParCool animates, head and torso included.",
                         "Limbs only",
-                        "Hold arms and legs only - the head and torso keep the resource pack's animation.")
-                .addBoolean(KEY_PACK_ANIMATIONS, "Resource pack animations", true,
-                        "On", "A resource pack that animates ParCool moves itself plays them instead of ParCool's poses.",
-                        "Off", "Always use ParCool's own poses.");
+                        "Hold arms and legs only - the head and torso keep the resource pack's animation.");
 
         PoseManager.setSourcePriority(ParCoolPose.SOURCE, ParCoolPose.SOURCE_PRIORITY);
 
@@ -56,10 +51,6 @@ public class EMFCompatParCoolMod {
 
     public static boolean isEnabled() {
         return EMFCompatConfig.getBoolean(KEY_ENABLED, true);
-    }
-
-    public static boolean isPackAnimations() {
-        return EMFCompatConfig.getBoolean(KEY_PACK_ANIMATIONS, true);
     }
 
     public static boolean isWholePose() {

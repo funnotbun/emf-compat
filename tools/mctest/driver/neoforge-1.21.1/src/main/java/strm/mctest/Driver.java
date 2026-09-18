@@ -155,6 +155,78 @@ public final class Driver {
         final JsonArray results = new JsonArray();
         int index;
         int waiting;
+        JsonObject until;
+        JsonObject untilResult;
+        int untilTicks;
+        int untilShots;
+
+        /**
+         * {"until": {"z<": 413.7, "timeout": 80, "shots": "pit", "every": 2}} - waits until every
+         * condition holds (x/y/z with &lt; or &gt;, "onGround": bool, "swing&lt;"/"swing&gt;": ParCool's
+         * bar swing in rad/tick), or the timeout (ticks, default
+         * 200) runs out - with no condition it is a plain wait of that long; with "shots", takes a screenshot every "every" ticks while it waits.
+         * The result says how many ticks it took and whether it timed out.
+         */
+        boolean untilDone(Minecraft mc) {
+            LocalPlayer p = mc.player;
+            boolean met = p != null;
+            boolean any = false;
+            for (Map.Entry<String, JsonElement> c : until.entrySet()) {
+                String k = c.getKey();
+                if (p == null || k.equals("timeout") || k.equals("shots") || k.equals("every")) {
+                    continue;
+                }
+                any = true;
+                if (k.equals("onGround")) {
+                    met &= p.onGround() == c.getValue().getAsBoolean();
+                    continue;
+                }
+                if (k.startsWith("swing")) {
+                    // ParCool's bar swing, rad/tick (HangDown angular speed); 0 when not on a bar
+                    double w = barSwing(p);
+                    double limit = c.getValue().getAsDouble();
+                    met &= k.charAt(5) == '<' ? w < limit : w > limit;
+                    continue;
+                }
+                double at = switch (k.charAt(0)) {
+                    case 'x' -> p.getX();
+                    case 'y' -> p.getY();
+                    case 'z' -> p.getZ();
+                    default -> throw new IllegalArgumentException("until: x/y/z with < or >, or onGround");
+                };
+                double limit = c.getValue().getAsDouble();
+                met &= k.charAt(1) == '<' ? at < limit : at > limit;
+            }
+            met &= any; // no condition: just the timeout, shooting as it goes
+            int timeout = until.has("timeout") ? until.get("timeout").getAsInt() : 200;
+            if (met || untilTicks >= timeout) {
+                untilResult.addProperty("ticks", untilTicks);
+                if (!met && any) {
+                    untilResult.addProperty("timedOut", true);
+                }
+                if (p != null) {
+                    untilResult.addProperty("pos", String.format(java.util.Locale.ROOT, "%.2f %.2f %.2f",
+                            p.getX(), p.getY(), p.getZ()));
+                    double w = barSwing(p);
+                    if (w != 0) untilResult.addProperty("swing", Math.round(w * 1000) / 1000.0);
+                }
+                until = null;
+                return true;
+            }
+            if (until.has("shots")) {
+                int every = until.has("every") ? until.get("every").getAsInt() : 2;
+                if (untilTicks % every == 0) {
+                    String name = (until.get("shots").getAsString() + "_" + String.format("%02d", untilShots++))
+                            .replaceAll("[^A-Za-z0-9._-]", "_") + ".png";
+                    Screenshot.grab(mc.gameDirectory, name, mc.getMainRenderTarget(), msg -> { });
+                    JsonArray list = untilResult.has("screenshots") ? untilResult.getAsJsonArray("screenshots") : new JsonArray();
+                    list.add(mc.gameDirectory.toPath().resolve("screenshots").resolve(name).toAbsolutePath().toString());
+                    untilResult.add("screenshots", list);
+                }
+            }
+            untilTicks++;
+            return false;
+        }
 
         Script(String id, JsonArray steps) {
             this.id = id;
@@ -176,10 +248,24 @@ public final class Driver {
             if (waiting > 0 && --waiting > 0) {
                 return;
             }
+            if (until != null && !untilDone(mc)) {
+                return;
+            }
             while (index < steps.size()) {
                 JsonObject step = steps.get(index++).getAsJsonObject();
                 JsonObject result = new JsonObject();
                 result.addProperty("step", index - 1);
+                if (step.has("until")) {
+                    until = step.getAsJsonObject("until");
+                    untilResult = result;
+                    untilTicks = 0;
+                    untilShots = 0;
+                    results.add(result);
+                    if (!untilDone(mc)) {
+                        return;
+                    }
+                    continue;
+                }
                 try {
                     int wait = run(mc, step, result);
                     results.add(result);
@@ -729,6 +815,19 @@ public final class Driver {
             }
         }
         return out;
+    }
+
+    private static double barSwing(LocalPlayer p) {
+        try {
+            Class<?> pk = Class.forName("com.alrex.parcool.common.Parkourability");
+            Object ability = pk.getMethod("get", net.minecraft.world.entity.player.Player.class).invoke(null, p);
+            Object entry = Class.forName("com.alrex.parcool.common.action.ParCoolActions").getField("HANG_DOWN").get(null);
+            Object action = pk.getMethod("get", Class.forName("com.alrex.parcool.api.action.ActionEntry")).invoke(ability, entry);
+            if (!(Boolean) action.getClass().getMethod("isDoing").invoke(action)) return 0;
+            return (Float) action.getClass().getMethod("getAngularSpeed", float.class).invoke(action, 1f);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return 0;
+        }
     }
 
     /** A no-argument method of a class another module keeps private. */

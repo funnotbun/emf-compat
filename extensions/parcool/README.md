@@ -4,11 +4,11 @@ A small client-side mod that makes **[ParCool!](https://modrinth.com/mod/parcool
 
 Tested with **[Fresh Animations: Player Extension](https://modrinth.com/resourcepack/fa-player-extension)** and **[Detailed Animations](https://modrinth.com/resourcepack/detailed-animations)** but it should work with any player animation resource pack.
 
-Without it, ParCool's moves are lost the moment EMF takes over the model: you vault a fence and your character keeps jogging on the spot, arms swinging to the resource pack's idle. This addon keeps the parkour pose where it belongs.
+Without it, ParCool's moves are lost the moment EMF takes over the model: you vault a fence and your character keeps jogging on the spot, arms swinging to the resource pack's idle.
 
 ## Covered Poses
 
-Every ParCool animation is covered — vaults, wall runs and wall jumps, rolls and breakfalls, climbing and hanging, sliding, crawling, dodges and dives.
+Every ParCool animation — vaults, wall runs and wall jumps, rolls and breakfalls, climbing and hanging, ziplines, sliding, crawling, dodges and dives.
 
 | ParCool version | Captured parts |
 |---|---|
@@ -16,60 +16,30 @@ Every ParCool animation is covered — vaults, wall runs and wall jumps, rolls a
 | 3.4.x, action owns the model | Head, torso, arms and legs |
 | 3.4.x, action adjusts the vanilla pose | Head, arms and legs |
 
-ParCool 4 reports which limbs each action drives, so anything it does not touch keeps playing the resource pack's animation. ParCool 3 has no such list, so the addon falls back to the scope its two animation modes imply.
-
-On ParCool 4 the move also fades in and out over your resource pack's animation with ParCool's own timing, so starting a fast run or landing a vault blends instead of snapping. While you only run, swim, crawl or charge a jump, your arms are free for other mods: a Better Combat swing, an instrument from Immersive Melodies or eating takes the arms and hands them back smoothly, and the legs keep running.
+The body rotation of flips and dives is ParCool's own and was never affected by EMF.
 
 ## Features
 
-- Parkour moves stay visible in third person instead of falling back to the resource-pack animation.
-- Works for other players too, so everyone's parkour looks right.
+- Parkour moves stay visible in third person instead of falling back to the resource-pack animation, for other players too.
 - Works with both ParCool generations — 3.4.x and 4.x — and picks the right path automatically.
-- Smooth transitions between parkour moves and your pack's animation (ParCool 4).
-- Attack, play or eat while running: Better Combat, Immersive Melodies and Not Enough Animations get the arms (ParCool 4).
-- Your own first-person view is left untouched.
-- Body rotation during flips and dives is ParCool's own and was never affected by EMF; it keeps working as before.
+- On ParCool 4 moves fade in and out of the pack's animation at ParCool's own pace instead of snapping.
+- Attack, play or eat while running: Better Combat, Immersive Melodies and Not Enough Animations get the arms, the legs keep running (ParCool 4).
+- Only affects third-person rendering; your own first-person view is left untouched.
 
-## Resource pack animations
+## Fresh Animations module
 
-ParCool's own animations are keyframed poses that look out of place next to a procedural pack like Fresh Animations. On ParCool 4 the addon therefore also hands ParCool's state to resource packs as EMF animation variables, so a pack can animate the moves itself:
+ParCool's keyframed poses sit oddly next to a procedural pack, so the jar also ships an animation module for FA+Player, made with FreshLX's permission: the fast run and charge jump, hands that rest on a ledge or hold a bar (with hand-over-hand shimmying and brachiation), FA's own crawl, swim and ladder climb for ParCool's crawl, fast swim and pole climb, and a cape that stays on the back. It is in the resource pack list as **EMF Compat: ParCool Animations** and goes **above FA+Player**, which it needs under it; it is not turned on by itself.
 
-| Variable | Value |
-|---|---|
-| `parcool_fast_run` | 1 while fast running |
-| `parcool_charge` | charge jump charge, 0 to 1 |
-| `parcool_bar`, `parcool_bar_swing`, `parcool_bar_swing_speed`, `parcool_bar_across` | hanging under a bar: 1 while hanging, the swing ParCool turns the body by (radians) and its speed (radians per tick), 1 facing across the bar |
-| `parcool_rarm_bar_rx`, `parcool_rarm_bar_ry`, `parcool_rarm_bar_rz`, `parcool_rarm_bar_lift` (and `larm`) | arm angles and shoulder lift that put each hand on the bar; along the bar the arms turn by x and z only, and a let-go arm swings round past the body to its next grip |
-| `parcool_rarm_bar_reach`, `parcool_larm_bar_reach` | along the bar: 0 while the hand holds, 0.3 let go and hanging, 1 at its next grip; sideways: 0 holding, rising to 1 mid-reach |
-| `parcool_bar_raise` | pixels to raise the body under the bar so the hands reach it |
-| `parcool_pole_climb` | 1 while climbing a pole or chain; a pack that reads it plays its own climb (the included module plays FA+Player's ladder climb) |
-| `parcool_crawl`, `parcool_fast_swim` | 1 while crawling or fast swimming; a pack that reads them keeps its own crawl and swim instead of ParCool's |
-| `parcool_charge_jump` | 1 during the jump out of a charge |
-| `parcool_vault` | progress through a vault, 0 to 1 |
-| `parcool_vault_side` | -1 vaulting left, 1 right, 0 straight over |
-| `parcool_hang` | 1 while hanging from a ledge |
-| `parcool_hang_wall` | 1 while the feet are against the wall |
-| `parcool_hang_left_to_wall`, `parcool_hang_right_to_wall`, `parcool_hang_back_to_wall` | how far a player hanging with the feet on the wall has turned away from it, 0 to 1 |
-| `parcool_rarm_grip`, `parcool_larm_grip` | 1 while that hand holds the ledge, 0 while it hangs free — turned side-on, only the hand nearer the wall holds on; eased |
-| `parcool_rarm_hang_rx`, `parcool_rarm_hang_ry`, `parcool_rarm_hang_lift` (and `larm`) | the finished hanging arm: on the ledge by IK, loose, or smoothly between; `ry` never wraps |
-| `parcool_rarm_reach`, `parcool_larm_reach` | shuffling along a ledge the hands go hand over hand: 0 while a hand holds, up to 1 mid-reach to its next grip |
-| `parcool_rarm_ik`, `parcool_larm_ik` | 1 while hanging with a ledge top found for that hand |
-| `parcool_hang_catch` | pixels to move the body down (negative: up) while catching a ledge and after, so the hands stay on it; the IK angles allow for it |
-| `parcool_rarm_ik_rx`, `parcool_rarm_ik_ry`, `parcool_larm_ik_rx`, `parcool_larm_ik_ry` | arm rotations, in radians, that put each hand on top of the ledge |
-| `parcool_rarm_ik_lift`, `parcool_larm_ik_lift` | pixels to raise each shoulder so the hand reaches; the rotations assume it is raised |
-| `parcool_rarm_ik_reach`, `parcool_larm_ik_reach` | shoulder-to-ledge distance over the arm's length, before the lift |
-| `parcool_body_held` | how much the torso shows ParCool's pose instead of the pack's, 0 to 1, faded like the core; a cape hung off the pack's torso variables follows the torso by this much |
-| `parcool_climb` | progress climbing up from a ledge, 0 to 1 |
-
-A pack that reads a move's variables takes that move over: the addon stops replaying ParCool's pose and its torso lean for it. Moves the pack does not read keep ParCool's poses.
-
-An animation module for **Fresh Animations: Player Extension** lives in `resourcepack/`; for now it animates the fast run, the charge jump, hanging from a ledge and climbing up from it; the other moves keep ParCool's poses. FreshLX's terms do not allow sharing their files unedited, so it is built on your own copy:
+Generated from a copy of FA+Player, so rebuild it whenever FA+Player is updated:
 
 ```bash
+# the copy inside the jar
+python3 extensions/parcool/resourcepack/build_pack.py <FA+Player zip> extensions/parcool/neoforge/1.21.1/src/main/resources/resourcepacks --builtin
+# or a loose pack for a resourcepacks folder
 python3 extensions/parcool/resourcepack/build_pack.py <FA+Player zip> <resourcepacks folder>
 ```
 
-Enable "EMF Compat ParCool Animations" above FA+Player.
+Any pack can animate the moves itself: on ParCool 4 the addon publishes ParCool's state as EMF animation variables, each registered with a one-line description in `ParCoolPackVariables.java`. Reading a move's variables takes that move over; moves a pack does not read keep ParCool's poses, so a pack is turned off the usual way - in the resource pack list.
 
 ## Config
 
@@ -78,8 +48,7 @@ Open the in-game config screen (Mods → EMF Compat Core → Config) and pick th
 | Option | What it does |
 |---|---|
 | EMF compatibility | Master switch — turn the whole addon off to get plain ParCool behaviour. |
-| Resource pack animations | Let a pack that animates ParCool moves itself play them instead of ParCool's poses. |
-| Pose scope | **Whole pose** holds every part ParCool animates. **Limbs only** leaves the head and torso to the resource pack, so facial and idle animations keep playing during a move. |
+| Pose scope | **Whole pose** holds every part ParCool animates. **Limbs only** leaves the head and torso to the resource pack. |
 
 ## Dependencies
 
@@ -90,7 +59,7 @@ Open the in-game config screen (Mods → EMF Compat Core → Config) and pick th
 
 ## Notes
 
-ParCool's own [compatibility addon](https://github.com/semillakan6/ParCool-CompatibilityAddon-NeoForge) solves the same clash the other way round: it asks EMF to drop to the vanilla model and pause its animation while ParCool poses the player. That works, but it costs you the pack's animation for as long as the move lasts. This addon captures ParCool's pose and replays it over the EMF model instead, so the rest of your pack keeps running. Running both at once is redundant — pick one.
+ParCool's own [compatibility addon](https://github.com/semillakan6/ParCool-CompatibilityAddon-NeoForge) solves the same clash the other way round: it drops EMF to the vanilla model while ParCool poses the player, which costs the pack's animation for the length of the move. Running both is redundant — pick one.
 
 ## Supported loaders / versions
 

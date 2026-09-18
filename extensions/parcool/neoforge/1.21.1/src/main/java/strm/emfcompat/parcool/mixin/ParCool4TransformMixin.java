@@ -19,6 +19,8 @@ public class ParCool4TransformMixin {
         if (!ParCoolPackVariables.settingUpRotations || cir.getReturnValue() == null) return;
         ParCool4PackTransforms processor = (ParCool4PackTransforms)
                 (Object) ((ParCool4AnimatorAccessor) (Object) this).emfcompat$processor();
-        cir.setReturnValue(processor.emfcompat$body(cir.getReturnValue()));
+        BlendingModelTransform body = processor.emfcompat$body(cir.getReturnValue());
+        processor.emfcompat$showTorso(body);
+        cir.setReturnValue(body);
     }
 }

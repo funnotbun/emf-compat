@@ -512,6 +512,9 @@ def run_steps(name: str, steps: list[dict], timeout: float = 120.0) -> dict:
     if not running_pid(profile):
         raise SystemExit(f"{profile.name} is not running")
     sid = f"{int(time.time() * 1000)}"
+    # a long script (a whole course) outlives the default: allow its own waits plus a minute
+    ticks = sum(int(s.get("wait", 0)) + int((s.get("until") or {}).get("timeout", 0)) for s in steps)
+    timeout = max(timeout, ticks / 20 * 1.5 + 60)
     inbox = profile.sandbox / "mctest" / "inbox"
     outbox = profile.sandbox / "mctest" / "outbox"
     tmp = inbox / f"{sid}.tmp"
@@ -525,8 +528,9 @@ def run_steps(name: str, steps: list[dict], timeout: float = 120.0) -> dict:
             answer.unlink()
             # Screenshots are written off-thread after the step returns; wait for the files.
             for r in result.get("results", []):
-                shot = r.get("screenshot")
-                if shot:
+                for shot in [r.get("screenshot")] + list(r.get("screenshots") or []):
+                    if not shot:
+                        continue
                     p = Path(shot)
                     for _ in range(50):
                         if p.exists() and p.stat().st_size > 0:

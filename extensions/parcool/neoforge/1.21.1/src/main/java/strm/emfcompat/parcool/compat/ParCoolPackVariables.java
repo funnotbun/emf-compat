@@ -162,6 +162,12 @@ public final class ParCoolPackVariables {
                 player -> hangFactor(player, "getBlendFactorRightToWall"));
         register("parcool_hang_back_to_wall", "hang", "How far a hanging player has turned the back to the wall, 0 to 1",
                 player -> hangFactor(player, "getBlendFactorBackToWall"));
+        register("parcool_torso_yaw", "hang", "Degrees ParCool turns the torso about the vertical (hanging it faces the wall); a head that should look where the player looks turns back by it",
+                ParCoolHandIK::torsoYaw);
+        register("parcool_head_yaw", "hang", "Head y rotation, degrees, that looks where the player looks from the torso as ParCool poses it, within a neck's turn",
+                player -> ParCoolHandIK.headAngles(player, partialTick())[0]);
+        register("parcool_head_pitch", "hang", "Head x rotation, degrees (down positive), that looks where the player looks from the torso as ParCool poses it",
+                player -> ParCoolHandIK.headAngles(player, partialTick())[1]);
         register("parcool_rarm_grip", "hang", "1 while the right hand holds the ledge, 0 while it hangs free (looking away along the wall); eased",
                 player -> holds(player).right().grip());
         register("parcool_larm_grip", "hang", "1 while the left hand holds the ledge, 0 while it hangs free (looking away along the wall); eased",
@@ -258,7 +264,7 @@ public final class ParCoolPackVariables {
 
     /** Whether a pack is animating this move for this player right now: it has read its variables lately. */
     public static boolean packAnimates(Player player, String move) {
-        if (!EMFCompatParCoolMod.isPackAnimations()) return false;
+        if (!EMFCompatParCoolMod.isEnabled()) return false;
         Map<String, Long> reads = LAST_READ.get(player.getUUID());
         Long read = reads == null ? null : reads.get(move);
         return read != null && System.nanoTime() - read <= PACK_READ_TIMEOUT_NANOS;
@@ -266,7 +272,7 @@ public final class ParCoolPackVariables {
 
     /** Whether a pack plays this running ParCool animation (an {@code AnimationProcessor} entry). */
     public static PackPlay packPlays(AbstractClientPlayer player, Object entry) {
-        if (!EMFCompatParCoolMod.isPackAnimations()) return PackPlay.NO;
+        if (!EMFCompatParCoolMod.isEnabled()) return PackPlay.NO;
         Map<String, Long> reads = LAST_READ.get(player.getUUID());
         if (reads == null) return PackPlay.NO;
         String id = ((ParCool4WorkingEntryAccessor) entry).emfcompat$registration().location().toString();
@@ -396,6 +402,11 @@ public final class ParCoolPackVariables {
         try {
             AbstractClientPlayer player = current();
             if (player == null) return 0f;
+            // The master switch has to reach the pack, not only our own replay: a pack reads these
+            // variables every frame and animates the move from them, so unless they go to 0 turning
+            // the addon off leaves the module animating every move as before. At 0 the module's own
+            // weights fade it out (see animations.py) and nothing snaps.
+            if (!EMFCompatParCoolMod.isEnabled()) return 0f;
             LAST_READ.computeIfAbsent(player.getUUID(), k -> new HashMap<>()).put(move, System.nanoTime());
             return value.of(player);
         } catch (Throwable t) {

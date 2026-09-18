@@ -248,6 +248,26 @@ public abstract class ParCool4PackFilterMixin implements ParCool4PackTransforms 
                 transform.blendFactor(), transform.cameraRotation());
     }
 
+    /** See {@link ParCool4PackTransforms#emfcompat$shownTorsoYaw}. */
+    @Unique private float emfcompat$shownYaw;
+
+    @Override
+    public float emfcompat$shownTorsoYaw() {
+        return emfcompat$shownYaw;
+    }
+
+    @Override
+    public void emfcompat$showTorso(@Nullable BlendingModelTransform shown) {
+        Transform torso = shown == null ? null : shown.transformation().transforms().get(AnimatableModelPart.BODY);
+        if (torso == null) {
+            emfcompat$shownYaw = 0f;
+            return;
+        }
+        org.joml.Vector3f forward = torso.rotation().transform(new org.joml.Vector3f(0, 0, 1));
+        float yaw = (float) Math.toDegrees(Math.atan2(forward.x, forward.z));
+        emfcompat$shownYaw = yaw * (shown.isOverwriting() ? 1f : shown.blendFactor());
+    }
+
     /** The torso of one transform morphed into another's, both at their own weight. */
     @Unique
     private static BlendingModelTransform emfcompat$torsoMorph(BlendingModelTransform from,

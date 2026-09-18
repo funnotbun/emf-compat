@@ -1,0 +1,4 @@
+Player models edited from Fresh Animations: Player Extension by FreshLX
+https://modrinth.com/resourcepack/fa-player-extension
+ParCool animation module: EMF Compat (STRadaT)
+Shipped with FreshLX's permission

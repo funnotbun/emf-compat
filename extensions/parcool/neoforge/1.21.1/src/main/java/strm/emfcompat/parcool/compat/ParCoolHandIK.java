@@ -494,6 +494,40 @@ public final class ParCoolHandIK {
         return new Vector3f(from).mul(a).add(new Vector3f(to).mul(b)).normalize();
     }
 
+    /**
+     * How far ParCool turned the torso about the vertical for this frame's drawing, degrees, at its
+     * weight: hanging it faces the wall. Taken as it was put on the pose stack, not worked out again:
+     * working it out again steps the torso's easing on a second time, and the head led it.
+     */
+    public static float torsoYaw(AbstractClientPlayer player) {
+        return ((ParCool4PackTransforms) (Object) ((ParCool4AnimatorAccessor) PlayerAnimator.get(player))
+                .emfcompat$processor()).emfcompat$shownTorsoYaw();
+    }
+
+    /** The largest turn of the head from the torso, and the largest tilt up or down, degrees. */
+    private static final float NECK_YAW = 95f;
+    private static final float NECK_PITCH = 70f;
+
+    /**
+     * The head's y and x rotations, degrees, that point it where the player looks, whatever ParCool
+     * did to the torso this frame: the look is taken into model space through the pose the model is
+     * drawn with, as the arms' aims are. Adding up angles instead - the look off the body less the
+     * torso's turn - missed the model's mirroring and the torso's lean and roll, and the head stayed
+     * on the wall or turned the wrong way.
+     */
+    public static float[] headAngles(AbstractClientPlayer player, float partial) {
+        Frame frame = FRAMES.get(player.getUUID());
+        if (frame == null) return new float[]{0f, 0f};
+        Vec3 look = player.getViewVector(partial);
+        Vector3f d = new Matrix4f(frame.model()).invert()
+                .transformDirection(new Vector3f((float) look.x, (float) look.y, (float) look.z)).normalize();
+        // Model space: forward is -z, down is +y. A head turned by y then x looks at
+        // (-sin y cos x, sin x, -cos y cos x).
+        float yaw = (float) Math.toDegrees(Math.atan2(-d.x, -d.z));
+        float pitch = (float) Math.toDegrees(Math.asin(Math.max(-1f, Math.min(1f, d.y))));
+        return new float[]{Math.max(-NECK_YAW, Math.min(NECK_YAW, yaw)), Math.max(-NECK_PITCH, Math.min(NECK_PITCH, pitch))};
+    }
+
     /** How high ParCool lifts the torso on the pose stack right now, in blocks, at its weight. */
     private static float torsoLift(AbstractClientPlayer player) {
         PlayerAnimator animator = PlayerAnimator.get(player);
@@ -662,6 +696,11 @@ public final class ParCoolHandIK {
     private static final double BAR_HANDS_APART = 0.8;
     /** The fist closes round the bar a little above its middle. */
     private static final double BAR_GRIP_ABOVE = 0.05;
+    /**
+     * How much wider than its shoulder each hand takes a bar across the chest, blocks. Right over
+     * the shoulders the arms hang in a narrow pair and the raised head goes through the bar.
+     */
+    private static final double BAR_HANDS_WIDER = 0.2;
     private static final Vec3 UP = new Vec3(0, 1, 0);
 
     /**
@@ -725,7 +764,10 @@ public final class ParCoolHandIK {
     @Nullable
     private static float[] barHand(Frame frame, Matrix4f toModel, Vector3f shoulder, Vec3 center, Vec3 axis,
                                    String key, String otherKey, long now) {
-        Vec3 onBar = center.add(axis.scale(shoulderWorld(frame, shoulder).subtract(center).dot(axis)));
+        // Out along the bar from over the shoulder, the way that shoulder sits from the body's middle.
+        Vector3f out = frame.model().transformDirection(new Vector3f(Math.signum(shoulder.x()), 0, 0)).normalize();
+        double wider = (out.x * axis.x + out.z * axis.z) * BAR_HANDS_WIDER;
+        Vec3 onBar = center.add(axis.scale(shoulderWorld(frame, shoulder).subtract(center).dot(axis) + wider));
         float[] aimed = pointArm(frame, toModel, shoulder, stepped(key, otherKey, onBar, UP, now, BAR_SIDE_GAIT));
         return aimed == null ? null : smoothArm(key, aimed, false, now);
     }

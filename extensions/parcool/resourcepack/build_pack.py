@@ -9,6 +9,11 @@ from the FA+Player the user already has:
 
     python3 extensions/parcool/resourcepack/build_pack.py <FA+Player zip or folder> <resourcepacks dir>
 
+With ``--builtin`` it writes the same pack into the mod's own resources instead, as the built-in
+pack the jar ships (``resourcepacks/parcool_animations``; see BuiltinAnimationPack). FreshLX has
+allowed us to ship their edited player models, so that copy goes into the repository and into the
+jar - regenerate it whenever FA+Player is updated.
+
 The cape is patched too, to follow the torso while ParCool poses it (see patch_cape), and FA's
 variables, so a ParCool pole climb plays FA's ladder climb (see patch_variables).
 
@@ -23,6 +28,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 PACK_NAME = "EMF Compat ParCool Animations"
+# The folder inside the jar, and the id the mod looks for: see BuiltinAnimationPack.
+BUILTIN_ID = "parcool_animations"
 CEM = "assets/minecraft/emf/cem"
 MODULE = "a_player_parcool.jpm"
 AFTER = "a_player_movement.jpm"
@@ -135,10 +142,12 @@ def patch_variables(jpm_text: str) -> str:
 
 
 def main(argv: list[str]) -> None:
+    builtin = "--builtin" in argv
+    argv = [a for a in argv if a != "--builtin"]
     if len(argv) != 2:
         raise SystemExit(__doc__)
     source, target_dir = Path(argv[0]), Path(argv[1])
-    out = target_dir / PACK_NAME
+    out = target_dir / (BUILTIN_ID if builtin else PACK_NAME)
     if out.exists():
         shutil.rmtree(out)
     (out / CEM).mkdir(parents=True)
@@ -152,12 +161,16 @@ def main(argv: list[str]) -> None:
                                     encoding="utf-8")
     (out / "pack.mcmeta").write_text(json.dumps({"pack": {
         "pack_format": 34, "supported_formats": {"min_inclusive": 15, "max_inclusive": 999},
-        "description": "ParCool moves for FA+Player - needs EMF Compat: ParCool. Place above FA+Player."}},
+        "description": ("ParCool moves for FA+Player. Turns itself on above FA+Player."
+                        if builtin else
+                        "ParCool moves for FA+Player - needs EMF Compat: ParCool. Place above FA+Player.")}},
         indent=2), encoding="utf-8")
+    shutil.copyfile(HERE / "pack.png", out / "pack.png")
     (out / "credits.txt").write_text(
         "Player models edited from Fresh Animations: Player Extension by FreshLX\n"
         "https://modrinth.com/resourcepack/fa-player-extension\n"
-        "ParCool animation module: EMF Compat (STRadaT)\n", encoding="utf-8")
+        "ParCool animation module: EMF Compat (STRadaT)\n"
+        "Shipped with FreshLX's permission\n", encoding="utf-8")
     print(out)
 
 

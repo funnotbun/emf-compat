@@ -87,6 +87,8 @@ def _expand(steps: list[dict], prefix: str) -> list[dict]:
                     out.append({"wait": every})
         elif "screenshot" in step:
             out.append({**step, "screenshot": f"{prefix}_{step['screenshot']}"})
+        elif "until" in step and "shots" in step["until"]:
+            out.append({"until": {**step["until"], "shots": f"{prefix}_{step['until']['shots']}"}})
         else:
             out.append(step)
     return out
@@ -177,10 +179,14 @@ def mc_steps(profile: str, steps: list[dict], crop: float = 0.45, size: int = 64
     """
     prefix = time.strftime("%H%M%S")
     result = mctest.run_steps(profile, _expand(steps, prefix))
-    shots = [(r["screenshot"], r["step"]) for r in result.get("results", []) if r.get("screenshot")]
+    shots = []
     for r in result.get("results", []):
         if r.get("screenshot"):
+            shots.append((r["screenshot"], r["step"]))
             r["screenshot"] = Path(r["screenshot"]).name
+        if r.get("screenshots"):  # an `until` that shot while it waited
+            shots += [(p, r["step"]) for p in r["screenshots"]]
+            r["screenshots"] = len(r["screenshots"])
     out: list = [json.dumps(result, indent=1)]
     if not shots:
         return out

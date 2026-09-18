@@ -28,4 +28,9 @@ public interface ParCool4PackTransforms {
      */
     @Nullable
     BlendingModelTransform emfcompat$body(@Nullable BlendingModelTransform full);
+
+    /** The torso yaw, degrees at its weight, of the transform last put on the pose stack for drawing. */
+    float emfcompat$shownTorsoYaw();
+
+    void emfcompat$showTorso(@Nullable BlendingModelTransform shown);
 }
