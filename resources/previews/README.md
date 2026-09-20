@@ -10,6 +10,7 @@ All previews use a 1080 × 700 canvas, 15 FPS and an infinite loop.
 | Carry On | `carry-on.webp` |
 | Exposure | `exposure.webp` |
 | Gliders | `gliders.webp` |
+| Hackers 'n Slashers | `hackers-and-slashers.webp` |
 | Immersive Melodies | `immersive-melodies.webp` |
 | Iron's Spells 'n Spellbooks | `irons-spells-n-spellbooks.webp` |
 | ParCool | `parcool.webp` |

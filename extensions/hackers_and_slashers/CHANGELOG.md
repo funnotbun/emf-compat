@@ -1,5 +1,10 @@
 # EMF Compat: Hackers 'n Slashers — Changelog
 
+## Unreleased
+
+- Added first-person support for attacks, blocks and weapon poses with EMF player models
+- Added First Person Model compatibility without duplicated arms or held items
+
 ## 1.0.0
 
 - First release

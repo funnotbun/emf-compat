@@ -19,6 +19,7 @@ Tested with **[Fresh Animations: Player Extension](https://modrinth.com/resource
 
 - **[Freecam](https://modrinth.com/mod/freecam)** — carry poses stay correct even when the camera is detached.
 - **[First Person Model](https://modrinth.com/mod/first-person-model)** — raised arms stay visible on your body in first person.
+- **ParCool 4 (NeoForge 1.21.1)** — with the ParCool addon installed, carrying keeps control of both arms during fast runs and charged jumps. Crawling, rolls, dodges/dashes, flips and two-handed hangs/climbs wait until the load is put down, because Carry On has no valid carry pose for those moves.
 
 ## Config
 

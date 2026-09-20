@@ -57,10 +57,6 @@ Open the in-game config screen (Mods → EMF Compat Core → Config) and pick th
 - [Entity Texture Features](https://modrinth.com/mod/entitytexturefeatures) (required by EMF)
 - EMF Compat Core 2.2.0+
 
-## Notes
-
-ParCool's own [compatibility addon](https://github.com/semillakan6/ParCool-CompatibilityAddon-NeoForge) solves the same clash the other way round: it drops EMF to the vanilla model while ParCool poses the player, which costs the pack's animation for the length of the move. Running both is redundant — pick one.
-
 ## Supported loaders / versions
 
 | Loader | Minecraft versions |

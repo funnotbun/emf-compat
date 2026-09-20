@@ -17,10 +17,12 @@ The EMF Compat addons fix that, one mod at a time. This core is the shared piece
 | **[Create](https://modrinth.com/project/emf-compat-create)** | Skyhook, grappling hooks, handles, jetpacks and physics objects |
 | **[Exposure](https://modrinth.com/project/emf-compat-exposure)** | Taking photos, selfies and tripod cameras |
 | **[Gliders](https://modrinth.com/project/emf-compat-gliders)** | Paragliders, Gliders and Reliable Gliders |
-| **[Horse Sync](https://modrinth.com/project/emf-compat-horse-sync)** | Sitting steady on an animated horse |
+| **Hackers 'n Slashers** | Attacks, blocks, rolls and weapon stances |
+| **Horse Sync** *(archived)* | Sitting steady on an animated horse; source remains available, but the addon is not published or maintained |
 | **[Immersive Melodies](https://modrinth.com/project/emf-compat-immersive-melodies)** | Playing instruments |
 | **[Iron's Spells 'n Spellbooks](https://modrinth.com/project/emf-compat-irons-spells-n-spellbooks)** | Spellcasting poses |
 | **[Not Enough Animations](https://modrinth.com/project/emf-compat-not-enough-animations)** | Eating, rowing, riding, petting and more |
+| **ParCool** | Vaults, wall runs, rolls and climbing |
 | **[Quark](https://modrinth.com/project/emf-compat-quark)** | Quark emotes |
 | **[Supplementaries](https://modrinth.com/project/emf-compat-supplementaries)** | Flute, slingshot and bubble blower |
 | **[TACZ](https://modrinth.com/project/emf-compat-tacz)** | Holding, aiming and reloading guns |

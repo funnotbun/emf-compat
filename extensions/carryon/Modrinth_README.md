@@ -23,6 +23,7 @@ Tested with **[Fresh Animations: Player Extension](https://modrinth.com/resource
 - Carried objects follow your EMF-animated body in third person.
 - Carried entities keep their normal model so they don't inherit the player resource-pack (for fixing head and body shaking bug).
 - First-person carry pose stays visible even with [First Person Model mod](https://modrinth.com/mod/first-person-model).
+- With the **EMF Compat: ParCool** addon on NeoForge 1.21.1, carrying keeps control of both arms during fast runs and charged jumps. Crawling, rolls, dodges/dashes, flips and two-handed hangs/climbs wait until the load is put down.
 
 
 <details>

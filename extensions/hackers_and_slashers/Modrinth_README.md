@@ -8,6 +8,8 @@ Tested with **[Fresh Animations: Player Extension](https://modrinth.com/resource
 
 Without it, swinging a weapon looks like nothing is happening — the resource-pack animation keeps your arms in their idle motion while the attack plays.
 
+The same combat animation and correctly attached held items are preserved in first person.
+
 <details>
 <summary>Video</summary>
 
@@ -22,16 +24,14 @@ Without it, swinging a weapon looks like nothing is happening — the resource-p
 | Attacks, blocks, rolls and other actions | Both arms, and the legs while standing still |
 | Weapon stance (off by default) | Both arms |
 
-The head and body always stay under EMF's control, so facial and idle animations from your pack keep playing while you fight.
-
 ## Features
 
-- Attacks, blocks, rolls and every other action pose stay visible in third person instead of falling back to the resource-pack animation.
-- Your stance holds while you stand still, so a lunge or a roll keeps its footing; walking keeps the pack's own walk cycle.
-- The pose follows your moving torso, so it stays attached to the body your pack is animating.
+- Attacks, blocks, rolls and every other action pose stay visible in third person.
+- Your stance holds while you stand still.
 - Optional weapon stances for weapons that have one — off by default, since they take both arms for as long as the weapon is held.
 - Works for other players too.
-- Your own first-person view is left untouched: Hackers 'n Slashers keeps its own first-person pose layer and item renderers, so your hands are already its business.
+- First-person attacks, blocks and weapon poses use Hackers 'n Slashers' animated arms and correctly attached held items instead of EMF's idle custom hands.
+- Compatible with **[First Person Model](https://modrinth.com/mod/first-person-model)** — its body is hidden while H&S owns the first-person animation, preventing duplicated arms and held items.
 
 ## Config
 

@@ -1,6 +1,6 @@
 # EMF Compat: Horse Sync
 
-## [Modrinth](https://modrinth.com/project/emf-compat-horse-sync)
+> **Archived:** this addon is not published or maintained. Its source remains available in the EMF Compat repository for reference and manual builds.
 
 Fixes player sitting position on horses animated with Entity Model Features.
 

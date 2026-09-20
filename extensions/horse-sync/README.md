@@ -1,6 +1,7 @@
 # EMF Compat: Horse Sync
 
-## [Modrinth](https://modrinth.com/project/emf-compat-horse-sync)
+> [!IMPORTANT]
+> **Archived:** this addon is not published or maintained. Its source and build targets remain in this repository for reference and possible manual use, but it is not part of the actively supported release set.
 
 A small client-side mod that keeps you seated properly on horses animated by **[Entity Model Features](https://modrinth.com/mod/entity-model-features)**.
 
@@ -43,6 +44,7 @@ Open the in-game config screen (Mods → EMF Compat Core → Config) and pick th
 
 ```bash
 ./gradlew :horse-sync-neoforge-1.21.1:build
+./gradlew :horse-sync-fabric-1.21.1:build
 ```
 
 enjoy ^_^

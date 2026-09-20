@@ -4,6 +4,8 @@ A small client-side mod that makes **Hackers 'n Slashers** combat poses work cor
 
 Without it, swinging a weapon looks like nothing is happening — the resource-pack animation keeps your arms in their idle motion while the attack plays.
 
+The same combat animation and correctly attached held items are preserved in first person.
+
 ## Covered Poses
 
 | Pose | Captured parts |
@@ -26,8 +28,13 @@ Open the in-game config screen (Mods → EMF Compat Core → Config) and pick th
 
 ## Notes
 
-Third person only. Hackers 'n Slashers keeps its own first-person pose layer and item-in-hand
-renderers, so your own hands are already its business and nothing here touches them.
+In first person the addon follows Hackers 'n Slashers' own visibility decision. Attacks, blocks
+and weapon poses that request its full-model first-person renderer replace EMF's custom hands for
+the duration of the animation; actions that H&S deliberately hides, such as rolls and dashes,
+remain hidden.
+
+With **First Person Model** installed, its body render is suppressed for those frames so H&S can
+draw the combat arms once, without duplicated hands or held items.
 
 Hackers 'n Slashers declares Better Combat incompatible, so this addon and **EMF Compat: Better
 Combat** are never useful at the same time.
