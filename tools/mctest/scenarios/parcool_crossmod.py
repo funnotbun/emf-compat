@@ -271,7 +271,31 @@ misc += mark("melodies release/flute_taken_away") + [{"closeScreen": True},
         {"cmd": "clear @s"}, {"wait": 20}] + probe("im_released", 4, 3)
 misc += [{"releaseAll": True}, {"orbit": False}, {"camera": "first"}]
 
-for name, steps in (("nea", nea), ("create", create), ("tacz", tacz), ("carryon", carryon),
+# ---- NEA on a hang: one hand at rest, both while moving --------------------------------------
+# The check for ParCoolHangHold. A filled map is the clearest item to read: two-handed when NEA has
+# both arms, one-handed and off to the side when it only has one.
+neahang = setup([
+    {"slot": 2}, {"cmd": "item replace entity @s hotbar.2 with minecraft:map"}, {"wait": 10},
+    {"click": "use"}, {"wait": 25}, {"state": True},        # empty map -> filled map, in hand
+])
+neahang += mark("neahang bar/still") + [{"hold": "key.parcool.hang"},
+            {"cmd": "tp @s -554.5 201.1 360.5 180 0"}, {"wait": 20}, {"orbit": [35, 0, 4]}, {"wait": 6}]
+neahang += probe("nh_bar_still", 5, 3)
+neahang += mark("neahang bar/shuffling") + [{"hold": "key.parcool.hang"},
+            {"cmd": "tp @s -554.5 201.1 360.5 180 0"}, {"wait": 16}, {"orbit": [35, 0, 4]},
+            {"hold": "right"}, {"wait": 12}]
+neahang += probe("nh_bar_move", 6, 2) + [{"release": "right"}, {"wait": 16}]
+neahang += probe("nh_bar_back", 5, 3) + [{"releaseAll": True}, {"wait": 12}]
+neahang += mark("neahang ledge/still") + [{"hold": "key.parcool.hang"},
+            {"cmd": "tp @s -584.5 201.2 323.35 180 0"}, {"wait": 20}, {"orbit": [35, 0, 4]}, {"wait": 6}]
+neahang += probe("nh_ledge_still", 5, 3)
+neahang += mark("neahang ledge/shimmy") + [{"hold": "key.parcool.hang"},
+            {"cmd": "tp @s -584.5 201.2 323.35 180 0"}, {"wait": 16}, {"orbit": [35, 0, 4]},
+            {"hold": "left"}, {"wait": 12}]
+neahang += probe("nh_ledge_move", 6, 2) + [{"releaseAll": True}, {"wait": 12}]
+neahang += [{"releaseAll": True}, {"orbit": False}, {"camera": "first"}]
+
+for name, steps in (("nea-hang", neahang), ("nea", nea), ("create", create), ("tacz", tacz), ("carryon", carryon),
                     ("bettercombat", bc), ("hns", hns), ("misc", misc)):
     with open(os.path.join(HERE, f"parcool-x-{name}.json"), "w") as f:
         json.dump(steps, f)
