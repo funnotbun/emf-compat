@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import strm.emfcompat.carryon.EMFCarryOnMod;
+import strm.emfcompat.carryon.CarryOnPoseCapture;
 import strm.emfcompat.carryon.compat.CarryOnCompat;
 import strm.emfcompat.core.BodyPartSync;
 import strm.emfcompat.core.FirstPersonModelCompat;
@@ -33,15 +34,23 @@ public class HumanoidModelMixin {
         if (!(entity instanceof Player player)) return;
         if (player.level() == null) return;
 
-        if (!EMFCarryOnMod.isEnabled() || !CarryOnCompat.isCarrying(player)) {
+        CarryOnPoseCapture.markHumanoidSetup(player.getUUID());
+
+        if (!EMFCarryOnMod.isEnabled() || !CarryOnCompat.shouldRenderCarryPose(player)) {
             PoseManager.clearPoses(player.getUUID(), SOURCE);
             BodyPartSync.clear(player.getUUID());
             return;
         }
 
         HumanoidModel<?> model = (HumanoidModel<?>) (Object) this;
-        PoseSnapshot leftArm = new PoseSnapshot(model.leftArm);
-        PoseSnapshot rightArm = new PoseSnapshot(model.rightArm);
+        CarryOnCompat.ActiveArms activeArms = CarryOnCompat.activeArms(player);
+        PoseSnapshot leftArm = activeArms.left() ? new PoseSnapshot(model.leftArm) : null;
+        PoseSnapshot rightArm = activeArms.right() ? new PoseSnapshot(model.rightArm) : null;
+        if (leftArm == null && rightArm == null) {
+            PoseManager.clearPoses(player.getUUID(), SOURCE);
+            BodyPartSync.clear(player.getUUID());
+            return;
+        }
 
         if (EMFCarryOnMod.isBodyFollow()) {
             // Body-follow: arms keep their exact pose and track the torso; the carried object

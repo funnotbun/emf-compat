@@ -4,7 +4,12 @@
   "package": "strm.emfcompat.parcool.mixin",
   "plugin": "strm.emfcompat.parcool.mixin.EMFCompatParCoolMixinPlugin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": [
+    "ParCool4AcrobaticActionMixin",
+    "ParCool4ActionAccessor",
+    "ParCool4BreakfallMixin",
+    "ParCool4CrawlMixin"
+  ],
   "client": [
     "ParCool3AnimationMixin",
     "ParCool4PlayerModelMixin",
@@ -15,7 +20,8 @@
     "ParCool4TransformMixin",
     "ParCool4PackFilterMixin",
     "ParCool4ModelPoseMixin",
-    "ParCool4BarSpeedMixin"
+    "ParCool4BarSpeedMixin",
+    "ParCool4HeldItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

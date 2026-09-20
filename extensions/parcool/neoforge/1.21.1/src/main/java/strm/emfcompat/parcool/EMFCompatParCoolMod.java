@@ -7,6 +7,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import strm.emfcompat.core.ConfigRegistry;
 import strm.emfcompat.core.EMFCompatConfig;
 import strm.emfcompat.core.PoseManager;
+import strm.emfcompat.parcool.compat.ParCoolClimbVeto;
 import strm.emfcompat.parcool.compat.ParCoolPackVariables;
 import strm.emfcompat.parcool.compat.ParCoolPose;
 
@@ -42,6 +43,16 @@ public class EMFCompatParCoolMod {
         if (FMLEnvironment.dist == Dist.CLIENT && isParCool4()) {
             ParCoolPackVariables.register();
         }
+        // Refusing a ledge grab is game logic, not rendering, so it is registered on both sides -
+        // but only where ParCool ships the action event, which ParCool 3 does not.
+        if (hasActionEvents()) {
+            ParCoolClimbVeto.register();
+        }
+    }
+
+    private static boolean hasActionEvents() {
+        return EMFCompatParCoolMod.class.getClassLoader()
+                .getResource("com/alrex/parcool/api/action/ParCoolActionEvent$TryToStart.class") != null;
     }
 
     private static boolean isParCool4() {

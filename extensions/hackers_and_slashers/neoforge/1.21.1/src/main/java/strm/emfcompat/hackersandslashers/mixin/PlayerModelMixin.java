@@ -37,9 +37,9 @@ import java.util.UUID;
  * at the same instruction. The descriptor is spelled out rather than left as a bare name, so the
  * selector can only mean the bridge and never the real method.</p>
  *
- * <p>Third person only. Hackers 'n Slashers keeps a separate first-person pose layer and its own
- * item-in-hand renderer mixins, so the first-person arms never come from the model captured here;
- * reaching into them would only fight the mod's own rendering.</p>
+ * <p>The pose capture remains third-person only. First person is handled separately by the EMF
+ * vanilla-model condition registered by {@link EMFCompatHnSMod}: it exposes H&amp;S' own
+ * first-person animation and item transforms instead of copying the third-person snapshot.</p>
  */
 @Mixin(value = PlayerModel.class, priority = 2500)
 @SuppressWarnings("unchecked")
@@ -65,7 +65,10 @@ public class PlayerModelMixin {
 
         UUID uuid = player.getUUID();
 
-        if (!EMFCompatHnSMod.isEnabled() || EMFCompatCore.isLocalPlayerInFirstPerson(uuid)) {
+        if (!EMFCompatHnSMod.isEnabled()
+                || EMFCompatCore.isLocalPlayerInFirstPerson(uuid)
+                || (EMFCompatHnSMod.isLocalPlayerInFirstPerson(player)
+                    && HnSCompat.isFirstPersonAnimationActive(player))) {
             PoseManager.clearPoses(uuid, SOURCE);
             PoseManager.clearPoses(uuid, POSE_SOURCE);
             return;

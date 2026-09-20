@@ -1,11 +1,22 @@
 package strm.emfcompat.hackersandslashers;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.world.entity.Entity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import strm.emfcompat.core.ConfigRegistry;
 import strm.emfcompat.core.EMFCompatConfig;
 import strm.emfcompat.core.PoseManager;
+import strm.emfcompat.hackersandslashers.compat.HnSCompat;
+import traben.entity_model_features.EMFAnimationApi;
+import traben.entity_model_features.utils.EMFEntity;
+
+import java.lang.reflect.Proxy;
 
 /**
  * Hackers 'n Slashers addon.
@@ -28,6 +39,7 @@ import strm.emfcompat.core.PoseManager;
 public class EMFCompatHnSMod {
 
     public static final String MOD_ID = "emf_compat_hackers_and_slashers";
+    private static final Logger LOGGER = LoggerFactory.getLogger("EMFCompatHackersAndSlashers");
 
     public static final String KEY_ENABLED = "hackersandslashers.enabled";
     public static final String KEY_BODY_FOLLOW_ARMS = "hackersandslashers.bodyFollowArms";
@@ -62,6 +74,7 @@ public class EMFCompatHnSMod {
                 .addBoolean(KEY_STANCES, "Weapon stances", false,
                         "On", "Hold the stance a carried weapon puts you in. Takes both arms for as long as the weapon is held.",
                         "Off", "Leave the stance to EMF — the pack's idle arm animation plays instead.");
+        modEventBus.addListener(this::clientSetup);
     }
 
     public static boolean isEnabled() {
@@ -78,5 +91,80 @@ public class EMFCompatHnSMod {
 
     public static boolean isStances() {
         return EMFCompatConfig.getBoolean(KEY_STANCES, false);
+    }
+
+    private void clientSetup(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> {
+            try {
+                EMFAnimationApi.registerVanillaModelCondition(
+                        EMFCompatHnSMod::shouldForceVanillaModelInFirstPerson);
+                LOGGER.info("Registered EMF first-person vanilla-model condition for Hackers 'n Slashers");
+                registerFirstPersonModelHandler();
+            } catch (Exception e) {
+                LOGGER.error("Failed to register EMF vanilla-model condition", e);
+            }
+        });
+    }
+
+    /**
+     * Lets Player Animation Library render the animated vanilla arms and held items whenever
+     * H&amp;S has explicitly enabled its full-model first-person pass. EMF's custom first-person
+     * model otherwise replaces that pass and leaves the H&amp;S animation hidden.
+     */
+    private static boolean shouldForceVanillaModelInFirstPerson(EMFEntity entity) {
+        if (!isEnabled()) {
+            return false;
+        }
+        Entity mcEntity = (Entity) entity;
+        if (!(mcEntity instanceof AbstractClientPlayer player) || !player.isLocalPlayer()) {
+            return false;
+        }
+        if (!isLocalPlayerInFirstPerson(player)) {
+            return false;
+        }
+        return HnSCompat.isFirstPersonAnimationActive(player);
+    }
+
+    /**
+     * Registers through reflection so First Person Model remains an optional dependency. Its
+     * activation API asks every handler whether the body render should be suppressed. While H&amp;S
+     * owns the first-person pass, suppressing that second body avoids duplicate arms and items.
+     */
+    private static void registerFirstPersonModelHandler() {
+        try {
+            Class<?> api = Class.forName("dev.tr7zw.firstperson.api.FirstPersonAPI");
+            Class<?> handlerType = Class.forName("dev.tr7zw.firstperson.api.ActivationHandler");
+            Object handler = Proxy.newProxyInstance(
+                    handlerType.getClassLoader(),
+                    new Class<?>[]{handlerType},
+                    (proxy, method, args) -> switch (method.getName()) {
+                        case "preventFirstperson" -> shouldSuppressFirstPersonModel();
+                        case "toString" -> "EMF Compat: Hackers 'n Slashers activation handler";
+                        case "hashCode" -> System.identityHashCode(proxy);
+                        case "equals" -> proxy == args[0];
+                        default -> null;
+                    });
+            api.getMethod("registerPlayerHandler", Object.class).invoke(null, handler);
+            LOGGER.info("Registered First Person Model suppression for Hackers 'n Slashers animations");
+        } catch (ClassNotFoundException e) {
+            // Optional mod is absent.
+        } catch (Throwable t) {
+            LOGGER.error("Failed to register First Person Model compatibility", t);
+        }
+    }
+
+    private static boolean shouldSuppressFirstPersonModel() {
+        Minecraft mc = Minecraft.getInstance();
+        return isEnabled()
+                && mc.player != null
+                && isLocalPlayerInFirstPerson(mc.player)
+                && HnSCompat.isFirstPersonAnimationActive(mc.player);
+    }
+
+    public static boolean isLocalPlayerInFirstPerson(AbstractClientPlayer player) {
+        Minecraft mc = Minecraft.getInstance();
+        return player.isLocalPlayer()
+                && mc.options.getCameraType().isFirstPerson()
+                && mc.getCameraEntity() == player;
     }
 }

@@ -1,6 +1,7 @@
 package strm.emfcompat.hackersandslashers.compat;
 
 import com.zigythebird.playeranim.api.PlayerAnimationAccess;
+import com.zigythebird.playeranimcore.api.firstPerson.FirstPersonMode;
 import com.zigythebird.playeranimcore.animation.layered.IAnimation;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
@@ -34,6 +35,7 @@ public final class HnSCompat {
     private static final ResourceLocation PARKOUR_LAYER = layer("parkour_layer");
     private static final ResourceLocation POSE_ACTION_LAYER = layer("pose_action_layer");
     private static final ResourceLocation POSE_LAYER = layer("pose_layer");
+    private static final ResourceLocation FIRST_PERSON_POSE_LAYER = layer("first_person_pose_layer");
 
     /**
      * The layers that play a deliberate, finite movement — a swing, a block, a roll. These are the
@@ -59,6 +61,26 @@ public final class HnSCompat {
             }
         }
         return false;
+    }
+
+    /**
+     * {@code true} while H&amp;S wants Player Animation Library to draw the third-person player
+     * model in the first-person pass.
+     *
+     * <p>Checking only whether an action layer is active is too broad. H&amp;S deliberately assigns
+     * {@link FirstPersonMode#DISABLED} to actions such as rolls and dashes, while attacks and
+     * blocks request {@link FirstPersonMode#THIRD_PERSON_MODEL}. Weapon stances use a separate
+     * first-person layer. Reading the mode from every H&amp;S layer therefore follows the mod's own
+     * decision and also keeps working during its fade-in and fade-out transitions.</p>
+     */
+    public static boolean isFirstPersonAnimationActive(AbstractClientPlayer player) {
+        for (ResourceLocation layer : ACTION_LAYERS) {
+            if (usesThirdPersonModelInFirstPerson(player, layer)) {
+                return true;
+            }
+        }
+        return usesThirdPersonModelInFirstPerson(player, POSE_LAYER)
+                || usesThirdPersonModelInFirstPerson(player, FIRST_PERSON_POSE_LAYER);
     }
 
     /**
@@ -167,6 +189,20 @@ public final class HnSCompat {
         } catch (Throwable t) {
             // Nothing may escape a render-time check: EMF answers a Throwable out of animation
             // evaluation by disabling every animation on the model for the rest of the session.
+            return false;
+        }
+    }
+
+    private static boolean usesThirdPersonModelInFirstPerson(AbstractClientPlayer player,
+                                                              ResourceLocation layer) {
+        try {
+            IAnimation animation = PlayerAnimationAccess.getPlayerAnimationLayer(player, layer);
+            return animation != null
+                    && animation.isActive()
+                    && animation.getFirstPersonMode() == FirstPersonMode.THIRD_PERSON_MODEL;
+        } catch (Throwable t) {
+            // Keep this render-time compatibility check fail-safe for the same reason as the
+            // ordinary layer check above: EMF disables model animations after an escaped error.
             return false;
         }
     }

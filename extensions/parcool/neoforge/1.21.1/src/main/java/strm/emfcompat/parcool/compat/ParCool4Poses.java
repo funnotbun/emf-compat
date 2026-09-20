@@ -74,7 +74,7 @@ public final class ParCool4Poses {
             }
         }
 
-        if (onlyLocomotion(player)
+        if ((onlyLocomotion(player) || ParCoolHandsFull.handsFull(player))
                 && PoseManager.hasArmPoseExcept(player.getUUID(), ParCoolPose.SOURCE, ARM_ACTION_PRIORITY)) {
             owned = EnumSet.copyOf(owned);
             owned.remove(ParCoolPose.Part.LEFT_ARM);

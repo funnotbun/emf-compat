@@ -356,6 +356,26 @@ public final class ParCoolPackVariables {
         return doing(bar) ? (Float) invoke(bar, getter, partialTick()) : 0f;
     }
 
+    /** Whether ParCool is hanging this player under a bar right now. Swallows ParCool's reflection. */
+    public static boolean underBar(AbstractClientPlayer player) {
+        if (!EMFCompatParCoolMod.isEnabled()) return false;
+        try {
+            return doing(action(player, "HANG_DOWN"));
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return false;
+        }
+    }
+
+    /** Whether ParCool is hanging this player from a ledge right now. */
+    public static boolean onLedge(AbstractClientPlayer player) {
+        if (!EMFCompatParCoolMod.isEnabled()) return false;
+        try {
+            return doing(action(player, "HANG_ON"));
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return false;
+        }
+    }
+
     private static ParCoolHandIK.BarArms bar(AbstractClientPlayer player) throws ReflectiveOperationException {
         Object bar = action(player, "HANG_DOWN");
         if (!doing(bar)) return ParCoolHandIK.BarArms.NONE;
@@ -497,7 +517,8 @@ public final class ParCoolPackVariables {
         return get.invoke(property);
     }
 
-    private static boolean isRunning(AbstractClientPlayer player, String id) {
+    /** Whether one of ParCool's animations is running on this player, by its id. */
+    public static boolean isRunning(AbstractClientPlayer player, String id) {
         for (Object entry : running(player)) {
             if (((ParCool4WorkingEntryAccessor) entry).emfcompat$registration().location().toString().equals(id)) {
                 return true;

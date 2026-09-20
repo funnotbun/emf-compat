@@ -1,0 +1,7 @@
+[mcp_servers.mctest]
+command = "uv"
+args = [
+    "run",
+    "--quiet",
+    "tools/mctest/server.py",
+]
