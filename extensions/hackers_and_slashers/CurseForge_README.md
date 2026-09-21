@@ -1,6 +1,6 @@
 # EMF Compat: Hackers 'n Slashers
 
-<!-- ![Weapon stance](CDN_GIF_URL) -->
+![Hackers 'n Slashers](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/hackers-and-slashers.webp?raw=true)
 
 A small client-side mod that makes **Hackers 'n Slashers** combat poses work correctly with **[Entity Model Features](https://www.curseforge.com/minecraft/mc-mods/entity-model-features)** player models.
 
@@ -17,13 +17,10 @@ The same combat animation and correctly attached held items are preserved in fir
 | Attacks, blocks, rolls and other actions | Both arms, and the legs while standing still |
 | Weapon stance (off by default) | Both arms |
 
-The head and body always stay under EMF's control, so facial and idle animations from your pack keep playing while you fight.
-
 ## Features
 
-- Attacks, blocks, rolls and every other action pose stay visible in third person instead of falling back to the resource-pack animation.
-- Your stance holds while you stand still, so a lunge or a roll keeps its footing; walking keeps the pack's own walk cycle.
-- The pose follows your moving torso, so it stays attached to the body your pack is animating.
+- Attacks, blocks, rolls and every other action pose stay visible in third person.
+- Your stance holds while you stand still.
 - Optional weapon stances for weapons that have one — off by default, since they take both arms for as long as the weapon is held.
 - Works for other players too.
 - First-person attacks, blocks and weapon poses use Hackers 'n Slashers' animated arms and correctly attached held items instead of EMF's idle custom hands.

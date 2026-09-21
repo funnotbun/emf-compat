@@ -1,6 +1,6 @@
 # EMF Compat: WATUT
 
-![Sleep..](https://cdn.modrinth.com/data/PIxeWxJ0/images/3969d7c7e9ec076fa0a1fa20e6eafbec2b072705.gif)
+![WATUT](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/watut.webp?raw=true)
 
 A small client-side mod that makes **[What Are They Up To](https://modrinth.com/mod/what-are-they-up-to)** status poses work correctly with **[Entity Model Features](https://modrinth.com/mod/entity-model-features)** player models.
 

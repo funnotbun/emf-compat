@@ -1,19 +1,12 @@
 # EMF Compat: ParCool
 
-<!-- ![Wall run](CDN_GIF_URL) -->
+![ParCool](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/parcool.webp?raw=true)
 
 A small client-side mod that makes **[ParCool!](https://modrinth.com/mod/parcool)** animations work correctly with **[Entity Model Features](https://modrinth.com/mod/entity-model-features)** player models.
 
 Without it, EMF resource-pack animations can override ParCool's parkour poses. With this addon, vaults, wall runs, rolls, climbing and other moves look the way they should and, in some scenarios, even better.
 
 Tested with **[Fresh Animations: Player Extension](https://modrinth.com/resourcepack/fa-player-extension)**. But should also work with other player animation packs.
-
-<details>
-<summary>Video</summary>
-
-<!-- paste the YouTube embed here -->
-
-</details>
 
 ## Features
 
@@ -22,7 +15,6 @@ Tested with **[Fresh Animations: Player Extension](https://modrinth.com/resource
 - Works for your character and other players.
 - Keeps unrelated resource-pack animations playing where possible.
 - Smooth transitions between ParCool moves and resource-pack animations in ParCool 4.
-- Compatible with animations from **[Better Combat](https://modrinth.com/mod/better-combat)**, **[Immersive Melodies](https://modrinth.com/mod/immersive-melodies)** and **[Not Enough Animations](https://modrinth.com/mod/not-enough-animations)**.
 - Cross-Compat with other EMF Compat Extensions.
 - Does not change your first-person view.
 
@@ -33,6 +25,14 @@ The mod includes an optional animation module for **[Fresh Animations: Player Ex
 This pack gives ParCool moves animations that match the Fresh Animations style, including fast running, jumping, ledge and bar movement, climbing, crawling and swimming.
 
 To use it, enable **EMF Compat: ParCool Animations** in the resource-pack list and place it **above FA+Player**.
+
+## Hands and Legs IK
+
+[IK](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/parcoolIK.webp?raw=true)
+
+## Turning while hanging
+
+[Turn](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/parcoolHangTurn.webp?raw=true)
 
 ## Config
 

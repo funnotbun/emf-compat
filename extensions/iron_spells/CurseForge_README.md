@@ -1,6 +1,6 @@
 # EMF Compat: Iron's Spells 'n Spellbooks
 
-![Fresh Spells](https://cdn.modrinth.com/data/rk0DMjc3/images/e8b26a70aa5f41b2e2b5b248ceb221799df35315.gif)
+![Iron's Spells 'n Spellbooks](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/irons-spells-n-spellbooks.webp?raw=true)
 
 A small client-side mod that makes **[Iron's Spells 'n Spellbooks](https://www.curseforge.com/minecraft/mc-mods/irons-spells-n-spellbooks)** casting poses work correctly with **[Entity Model Features](https://www.curseforge.com/minecraft/mc-mods/entity-model-features)** player models.
 

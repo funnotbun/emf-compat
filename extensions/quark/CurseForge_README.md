@@ -1,6 +1,6 @@
 # EMF Compat: Quark
 
-![Headbang!](https://cdn.modrinth.com/data/UvuFGp0l/images/444839c0908ae3322a66ab7a8b28eec190659c2b.gif)
+![Quark](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/quark.webp?raw=true)
 
 A small client-side mod that makes **[Quark](https://www.curseforge.com/minecraft/mc-mods/quark)** emotes work correctly with **[Entity Model Features](https://www.curseforge.com/minecraft/mc-mods/entity-model-features)** player models.
 

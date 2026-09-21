@@ -1,6 +1,6 @@
 # EMF Compat: Immersive Melodies
 
-![Jumping and playing!](https://cdn.modrinth.com/data/XLUpeCri/images/78a59aa9b67148fdd8a1da72ba2c0ae9610ba0b7.gif)
+![Immersive Melodies](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/immersive-melodies.webp?raw=true)
 
 A small client-side mod that makes **[Immersive Melodies](https://www.curseforge.com/minecraft/mc-mods/immersive-melodies)** instrument animations work correctly with **[Entity Model Features](https://www.curseforge.com/minecraft/mc-mods/entity-model-features)** player models.
 

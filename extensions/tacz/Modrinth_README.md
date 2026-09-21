@@ -1,6 +1,6 @@
 # EMF Compat: TACZ
 
-![Fresh Reload](https://cdn.modrinth.com/data/vPnbqVkb/images/52102bc3f265f42e31aef6517048cedb3f30e865.gif)
+![TACZ](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/tacz.webp?raw=true)
 
 A small client-side mod that makes **[Timeless and Classics Zero](https://modrinth.com/mod/tacz-1.21.1)** gun poses work correctly with **[Entity Model Features](https://modrinth.com/mod/entity-model-features)** player models.
 

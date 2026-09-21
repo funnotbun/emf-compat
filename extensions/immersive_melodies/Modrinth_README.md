@@ -1,20 +1,10 @@
 # EMF Compat: Immersive Melodies
 
-![Jumping and playing!](https://cdn.modrinth.com/data/XLUpeCri/images/78a59aa9b67148fdd8a1da72ba2c0ae9610ba0b7.gif)
+![Immersive Melodies](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/immersive-melodies.webp?raw=true)
 
 A small client-side mod that makes **[Immersive Melodies](https://modrinth.com/mod/immersive-melodies)** instrument animations work correctly with **[Entity Model Features](https://modrinth.com/mod/entity-model-features)** player models.
 
 Tested with **[Fresh Animations: Player Extension](https://modrinth.com/resourcepack/fa-player-extension)** but it should work with any player animation resource pack.
-
-
-<details>
-<summary>Video</summary>
-
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/3XB3MGHLTVk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-
-</details>
-
-
 
 ## Features
 

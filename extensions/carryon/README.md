@@ -9,8 +9,8 @@ Tested with **[Fresh Animations: Player Extension](https://modrinth.com/resource
 ## Features
 
 - Your arms stay raised naturally while carrying blocks and entities.
-- Carried objects follow your EMF-animated body in third person.
-- Carried entities keep their normal model so they don't inherit the player resource-pack shape.
+- Carried objects stay attached to your EMF-animated hands in both third-person camera directions.
+- Carried entities keep their resource-pack model and texture; **Frozen** holds an independent pose while **Animated** keeps their own EMF animation without first-person shaking.
 - First-person carry pose stays visible.
 - Compatible with **[Fresh Animations: Player Extension](https://modrinth.com/resourcepack/fa-player-extension)**.
 - Should work with most player animation resource packs using EMF.
@@ -29,7 +29,7 @@ Open the in-game config screen (Mods → EMF Compat Core → Config) and pick th
 |---|---|
 | EMF compatibility | Master switch — turn the whole addon off to get plain Carry On behaviour. |
 | Arm sync | **Body-follow** keeps captured poses attached to your moving torso. **Rotation-only** is the older, simpler behaviour, but in some cases it gives smoother animations. |
-| Carried mob model | **Vanilla** keeps carried mobs on their own model. **EMF** lets EMF animate them too. |
+| Carried mob animation | **Frozen** holds a per-entity pose that cannot be overwritten by another mob of the same type. **Animated** keeps the carried mob's own EMF animation with stable render interpolation. |
 
 ## Build
 

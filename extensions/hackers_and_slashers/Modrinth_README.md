@@ -1,6 +1,6 @@
 # EMF Compat: Hackers 'n Slashers
 
-<!-- ![Weapon stance](CDN_GIF_URL) -->
+![Hackers 'n Slashers](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/hackers-and-slashers.webp?raw=true)
 
 A small client-side mod that makes **Hackers 'n Slashers** combat poses work correctly with **[Entity Model Features](https://modrinth.com/mod/entity-model-features)** player models.
 
@@ -9,13 +9,6 @@ Tested with **[Fresh Animations: Player Extension](https://modrinth.com/resource
 Without it, swinging a weapon looks like nothing is happening — the resource-pack animation keeps your arms in their idle motion while the attack plays.
 
 The same combat animation and correctly attached held items are preserved in first person.
-
-<details>
-<summary>Video</summary>
-
-<!-- paste the YouTube embed here -->
-
-</details>
 
 ## Covered Poses
 

@@ -1,6 +1,6 @@
 # EMF Compat: Exposure
 
-![Kitty](https://cdn.modrinth.com/data/mHqWFw6Z/images/d53d779ef2229f141e16db690df60d6b2bce82ff.gif)
+![Exposure](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/exposure.webp?raw=true)
 
 A small client-side mod that makes **[Exposure](https://www.curseforge.com/minecraft/mc-mods/exposure)** camera poses work correctly with **[Entity Model Features](https://www.curseforge.com/minecraft/mc-mods/entity-model-features)** player models.
 

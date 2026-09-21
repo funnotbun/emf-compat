@@ -1,6 +1,6 @@
 # EMF Compat: Carry On
 
-![Carried Chest](https://cdn.modrinth.com/data/BPD5ZhBo/images/bae93f715fe88888f3e9b9cf4468ac96ba325eed.gif)
+![Carry On](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/carry-on.webp?raw=true)
 
 A small client-side mod that makes **[Carry On](https://www.curseforge.com/minecraft/mc-mods/carry-on)** carry poses work correctly with **[Entity Model Features](https://www.curseforge.com/minecraft/mc-mods/entity-model-features)** player models.
 
@@ -10,8 +10,8 @@ Tested with **[Fresh Animations: Player Extension](https://www.curseforge.com/mi
 
 - Compatible with **[Fresh Animations: Player Extension](https://www.curseforge.com/minecraft/texture-packs/fa-player-extension)**.
 - Your arms stay raised naturally while carrying blocks and entities.
-- Carried objects follow your EMF-animated body in third person.
-- Carried entities keep their normal model so they don't inherit the player resource-pack (for fixing head and body shaking bug).
+- Carried objects stay attached to your EMF-animated hands in both third-person camera directions.
+- Carried mobs keep their resource-pack model and texture: Frozen holds an independent pose, while Animated keeps their own EMF animation without first-person shaking.
 - First-person carry pose stays visible even with [First Person Model mod](https://www.curseforge.com/minecraft/mc-mods/first-person-model).
 - With the **EMF Compat: ParCool** addon on NeoForge 1.21.1, carrying keeps control of both arms during fast runs and charged jumps. Crawling, rolls, dodges/dashes, flips and two-handed hangs/climbs wait until the load is put down.
 

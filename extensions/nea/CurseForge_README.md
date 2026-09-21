@@ -1,12 +1,10 @@
 # Not Enough Animations: EMF Compat
 
+![Not Enough Animations](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/nea.webp?raw=true)
+
 A small client-side mod that pauses **[Entity Model Features](https://www.curseforge.com/minecraft/mc-mods/entity-model-features)** player animations while **[Not Enough Animations](https://www.curseforge.com/minecraft/mc-mods/not-enough-animations)** is active.
 
 Tested with **[Fresh Animations: Player Extension](https://www.curseforge.com/minecraft/texture-packs/fa-player-extension)** and **[Detailed Animations](https://www.curseforge.com/minecraft/texture-packs/detailed-animations)** but it should work with any player animation resource pack.
-
-## Video
-
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/QIZlt0xBARQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ## Covered Animations
 

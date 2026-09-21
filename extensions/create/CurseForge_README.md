@@ -1,18 +1,19 @@
 # EMF Compat: Create
 
+![Create](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/create.webp?raw=true)
+
 A small client-side mod that makes **[Create](https://www.curseforge.com/minecraft/mc-mods/create)** — and many of its add-ons — work correctly with **[Entity Model Features](https://www.curseforge.com/minecraft/mc-mods/entity-model-features)** models.
 
 Tested with **[Fresh Animations](https://www.curseforge.com/minecraft/texture-packs/fresh-animations)**, **[Fresh Animations: Player Extension](https://www.curseforge.com/minecraft/texture-packs/fa-player-extension)** and **[Detailed Animations](https://www.curseforge.com/minecraft/texture-packs/detailed-animations)** but it should work with any animation resource pack.
 
 ## Features
 
-- You keep the Skyhook hanging pose while riding chains and ropes, instead of half your body sliding back into the resource-pack animation.
+- You keep the Skyhook hanging pose while riding chains and ropes.
 - Your character's expressions and idle motion keep playing while you hang — the model is no longer frozen or swapped for the vanilla one.
 - The engineer's and logistics hat sits on top of the head again. With Fresh Animations it used to sink to the neck on villagers and zombies, and hang in the air beside animals, far too big.
-- Grappling hook poses stay correct while you swing and hang.
 - Holding an Aeronautics handle keeps your hands on the handle, following your moving body.
-- Grabbed physics objects and ragdoll grabs no longer fight with EMF animations.
-- Jetpack flight (Cosmonautics and Create S&A) can play your resource pack's flying animation (currently works only with **[Fresh Animations: Player Extension](https://www.curseforge.com/minecraft/texture-packs/fa-player-extension)**).
+- Grabbed physics objects and ragdoll grabs.
+- Jetpack flight (Cosmonautics and Create S&A) can play only with **[Fresh Animations: Player Extension](https://www.curseforge.com/minecraft/texture-packs/fa-player-extension)**.
 - Works for other players too.
 
 ## Supported Create add-ons

@@ -27,11 +27,11 @@ Previews still needed for Create and Not Enough Animations.
 After pushing this directory to GitHub, use:
 
 ```text
-https://raw.githubusercontent.com/victorkozhokin/emf-compat/main/resources/previews/FILENAME.webp
+https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/FILENAME.webp?raw=true
 ```
 
 Example Markdown:
 
 ```markdown
-![ParCool compatibility](https://raw.githubusercontent.com/victorkozhokin/emf-compat/main/resources/previews/parcool.webp)
+![ParCool compatibility](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/parcool.webp?raw=true)
 ```

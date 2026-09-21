@@ -1,6 +1,6 @@
 # EMF Compat: Gliders
 
-![Gliders](https://cdn.modrinth.com/data/PsGWhwc8/images/fe7e0cc2e8e585bfe083833edbb90953abb23e02.gif)
+![Gliders](https://github.com/victorkozhokin/emf-compat/blob/main/resources/previews/gliders.webp?raw=true)
 
 A small client-side mod that makes gliding poses work correctly with **[Entity Model Features](https://modrinth.com/mod/entity-model-features)** player models.
 
