@@ -64,6 +64,9 @@ project(":horse-sync-neoforge-1.21.1").projectDir = file("extensions/horse-sync/
 include("carryon-neoforge-1.21.1")
 project(":carryon-neoforge-1.21.1").projectDir = file("extensions/carryon/neoforge/1.21.1")
 
+include("blahaj-neoforge-1.21.1")
+project(":blahaj-neoforge-1.21.1").projectDir = file("extensions/blahaj/neoforge/1.21.1")
+
 include("carryon-forge-1.20.1")
 project(":carryon-forge-1.20.1").projectDir = file("extensions/carryon/forge/1.20.1")
 
